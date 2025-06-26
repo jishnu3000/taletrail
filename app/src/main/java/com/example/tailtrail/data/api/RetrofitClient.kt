@@ -1,5 +1,6 @@
 package com.example.tailtrail.data.api
 
+import android.util.Log
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -8,8 +9,11 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
     private const val BASE_URL = "https://taletrails-backend.onrender.com/"
+    private const val TAG = "RetrofitClient"
 
-    private val loggingInterceptor = HttpLoggingInterceptor().apply {
+    private val loggingInterceptor = HttpLoggingInterceptor { message ->
+        Log.d(TAG, "OkHttp: $message")
+    }.apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
@@ -21,6 +25,7 @@ object RetrofitClient {
         .build()
 
     private val retrofit: Retrofit by lazy {
+        Log.d(TAG, "Initializing Retrofit with base URL: $BASE_URL")
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(okHttpClient)
@@ -29,6 +34,7 @@ object RetrofitClient {
     }
 
     val authApi: AuthApi by lazy {
+        Log.d(TAG, "Creating AuthApi instance")
         retrofit.create(AuthApi::class.java)
     }
 }

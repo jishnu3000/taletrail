@@ -8,11 +8,17 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.tailtrail.data.model.UserDetails
 import com.example.tailtrail.data.model.UserResponse
 import com.example.tailtrail.data.repository.AuthRepository
 import com.example.tailtrail.data.storage.UserPreferences
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
 
 class AuthViewModel(private val context: Context) : ViewModel() {
     private val repository = AuthRepository()
@@ -26,6 +32,9 @@ class AuthViewModel(private val context: Context) : ViewModel() {
         private set
 
     var currentUser by mutableStateOf<UserResponse?>(null)
+        private set
+
+    var userDetails by mutableStateOf<UserDetails?>(null)
         private set
 
     init {
@@ -137,6 +146,42 @@ class AuthViewModel(private val context: Context) : ViewModel() {
                 Log.e(TAG, "API connection test exception: ${e.message}", e)
                 callback(false, e.message ?: "API connection test failed")
             }
+        }
+    }
+
+    fun fetchUserDetails() {
+        val userId = currentUser?.userId
+        if (userId == null) return
+        viewModelScope.launch {
+            try {
+                val details = getUserDetailsFromApi(userId)
+                userDetails = details
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to fetch user details", e)
+            }
+        }
+    }
+
+    private suspend fun getUserDetailsFromApi(userId: Int): UserDetails? = withContext(Dispatchers.IO) {
+        val url = URL("https://taletrails-backend.onrender.com/users/details?userId=$userId")
+        val connection = url.openConnection() as HttpURLConnection
+        connection.requestMethod = "GET"
+        connection.connectTimeout = 5000
+        connection.readTimeout = 5000
+        return@withContext try {
+            if (connection.responseCode == 200) {
+                val response = connection.inputStream.bufferedReader().readText()
+                val json = JSONObject(response)
+                UserDetails(
+                    name = json.getString("name"),
+                    phoneNumber = json.getString("phoneNumber"),
+                    pincode = json.getString("pincode"),
+                    email = json.getString("email"),
+                    quizTaken = json.getBoolean("quizTaken")
+                )
+            } else null
+        } finally {
+            connection.disconnect()
         }
     }
 

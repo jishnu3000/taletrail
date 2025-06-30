@@ -88,10 +88,12 @@ dependencies {
     // ViewModel for handling UI-related data
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
 
     // DataStore for persisting user data
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation(libs.androidx.datastore.core.android)
+    implementation(libs.androidx.runtime.livedata)
 
     // Testing
     testImplementation(libs.junit)

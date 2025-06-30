@@ -54,7 +54,7 @@ fun TailTrailApp() {
             HomeScreen(navController = navController, authViewModel = authViewModel)
         }
         composable("profile") {
-            UserProfileScreen(navController = navController)
+            UserProfileScreen(navController = navController, authViewModel = authViewModel)
         }
     }
 }

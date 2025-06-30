@@ -3,10 +3,10 @@ package com.example.tailtrail.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,83 +20,88 @@ import androidx.navigation.NavHostController
 
 @Composable
 fun WelcomeScreen(navController: NavHostController) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF9C27B0), // Purple
-                        Color(0xFF673AB7)  // Darker purple
+    Scaffold(
+
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF9C27B0), // Purple
+                            Color(0xFF673AB7)  // Darker purple
+                        )
                     )
-                )
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(32.dp)
+                ),
+            contentAlignment = Alignment.Center
         ) {
-            // App Title
-            Text(
-                text = "Tale Trail",
-                fontSize = 42.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 64.dp)
-            )
-
-            // Login Button
-            Button(
-                onClick = { navController.navigate("login") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(28.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = Color(0xFF673AB7)
-                ),
-                elevation = ButtonDefaults.buttonElevation(
-                    defaultElevation = 8.dp,
-                    pressedElevation = 12.dp
-                )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(32.dp)
             ) {
+                // App Title
                 Text(
-                    text = "Login",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
+                    text = "Tale Trail",
+                    fontSize = 42.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(bottom = 64.dp)
                 )
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Sign Up Button
-            OutlinedButton(
-                onClick = { navController.navigate("signup") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(28.dp),
-                border = ButtonDefaults.outlinedButtonBorder.copy(
-                    width = 2.dp,
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(Color.White, Color.White.copy(alpha = 0.8f))
+                // Login Button
+                Button(
+                    onClick = { navController.navigate("login") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                        contentColor = Color(0xFF673AB7)
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 8.dp,
+                        pressedElevation = 12.dp
                     )
-                ),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = Color.White
-                )
-            ) {
-                Text(
-                    text = "Sign Up",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
+                ) {
+                    Text(
+                        text = "Login",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Sign Up Button
+                OutlinedButton(
+                    onClick = { navController.navigate("signup") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(28.dp),
+                    border = ButtonDefaults.outlinedButtonBorder.copy(
+                        width = 2.dp,
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(Color.White, Color.White.copy(alpha = 0.8f))
+                        )
+                    ),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text(
+                        text = "Sign Up",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
         }
     }

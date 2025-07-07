@@ -3,6 +3,8 @@ package com.example.tailtrail.data.repository
 import android.util.Log
 import com.example.tailtrail.data.api.RetrofitClient
 import com.example.tailtrail.data.model.LoginRequest
+import com.example.tailtrail.data.model.QuizSubmissionRequest
+import com.example.tailtrail.data.model.QuizSubmissionResponse
 import com.example.tailtrail.data.model.SignupRequest
 import com.example.tailtrail.data.model.UserResponse
 import retrofit2.Response
@@ -111,6 +113,50 @@ class AuthRepository {
                 e.message?.contains("timeout") == true -> "Request timeout. Please check your internet connection."
                 e.message?.contains("Unable to resolve host") == true -> "No internet connection. Please check your network."
                 else -> "Signup failed: ${e.message ?: "Unknown error occurred"}"
+            }
+            Result.failure(Exception(errorMessage))
+        }
+    }
+
+    suspend fun submitQuiz(quizRequest: QuizSubmissionRequest): Result<QuizSubmissionResponse> {
+        return try {
+            Log.d(TAG, "Submitting quiz for user: ${quizRequest.userId}")
+            Log.d(TAG, "Quiz submission request: $quizRequest")
+            Log.d(TAG, "Starting quiz submission with 60-second timeout...")
+
+            val startTime = System.currentTimeMillis()
+            val response = authApi.submitQuiz(quizRequest)
+            val endTime = System.currentTimeMillis()
+            val duration = endTime - startTime
+
+            Log.d(TAG, "Quiz submission response received in ${duration}ms")
+            Log.d(TAG, "Quiz submission response code: ${response.code()}")
+            Log.d(TAG, "Quiz submission response body: ${response.body()}")
+
+            if (response.isSuccessful && response.body() != null) {
+                Log.d(TAG, "Quiz submission successful: ${response.body()}")
+                Result.success(response.body()!!)
+            } else {
+                val errorMessage = when {
+                    response.code() == 404 -> "User not found"
+                    response.code() == 400 -> "Invalid quiz data"
+                    response.code() == 500 -> "Server error. Please try again later"
+                    response.errorBody() != null -> {
+                        val errorBody = response.errorBody()?.string()
+                        Log.e(TAG, "Quiz submission error body: $errorBody")
+                        "Quiz submission failed: ${response.message()}"
+                    }
+                    else -> "Quiz submission failed: ${response.message()}"
+                }
+                Log.e(TAG, "Quiz submission failed: $errorMessage")
+                Result.failure(Exception(errorMessage))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Quiz submission exception: ${e.message}", e)
+            val errorMessage = when {
+                e.message?.contains("timeout") == true -> "Quiz submission timed out after 60 seconds. Please check your internet connection and try again."
+                e.message?.contains("Unable to resolve host") == true -> "No internet connection. Please check your network."
+                else -> "Quiz submission failed: ${e.message ?: "Unknown error occurred"}"
             }
             Result.failure(Exception(errorMessage))
         }

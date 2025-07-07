@@ -12,6 +12,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.tailtrail.data.model.QuizAnswer
+import com.example.tailtrail.ui.viewmodel.AuthViewModel
+import com.example.tailtrail.ui.viewmodel.QuizState
 
 val quizQuestions = listOf(
     QuizQuestion(1, "You come across a fork in the road. What do you do?", listOf(
@@ -109,8 +112,16 @@ val quizQuestions = listOf(
 data class QuizQuestion(val id: Int, val question: String, val options: List<String>)
 
 @Composable
-fun QuizScreen(navController: NavHostController) {
+fun QuizScreen(navController: NavHostController, authViewModel: AuthViewModel? = null) {
     var answers by remember { mutableStateOf(MutableList(quizQuestions.size) { -1 }) }
+    var showError by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+
+    val quizState = authViewModel?.quizSubmissionState ?: com.example.tailtrail.ui.viewmodel.QuizState.Idle
+
+    // Check if all questions are answered
+    val allAnswered = answers.all { it != -1 }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -124,6 +135,7 @@ fun QuizScreen(navController: NavHostController) {
             color = Color(0xFF673AB7),
             modifier = Modifier.padding(bottom = 16.dp)
         )
+
         LazyColumn(
             modifier = Modifier.weight(1f)
         ) {
@@ -150,13 +162,87 @@ fun QuizScreen(navController: NavHostController) {
                 }
             }
         }
-        Spacer(modifier = Modifier.height(24.dp))
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Show error message if there's an error
+        if (showError) {
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
+
+        // Show warning if not all questions answered
+        if (!allAnswered) {
+            Text(
+                text = "Please answer all questions before submitting",
+                color = Color.Red,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         Button(
-            onClick = { /* No functionality yet */ },
+            onClick = {
+                if (allAnswered && authViewModel != null) {
+                    // Convert answers to QuizAnswer objects
+                    val quizAnswers = answers.mapIndexed { index, selectedOption ->
+                        QuizAnswer(
+                            questionId = quizQuestions[index].id,
+                            question = quizQuestions[index].question,
+                            selectedOption = quizQuestions[index].options[selectedOption]
+                        )
+                    }
+
+                    // Submit quiz
+                    authViewModel.submitQuiz(quizAnswers) { success, message ->
+                        if (success) {
+                            // Navigate to home screen on success
+                            navController.navigate("home") {
+                                popUpTo("quiz") { inclusive = true }
+                            }
+                        } else {
+                            // Show error message
+                            showError = true
+                            errorMessage = message
+                        }
+                    }
+                }
+            },
+            enabled = allAnswered && quizState != QuizState.Loading,
             modifier = Modifier.fillMaxWidth(0.7f),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9C27B0))
         ) {
-            Text("Submit", color = Color.White, fontSize = 18.sp)
+            when (quizState) {
+                is QuizState.Loading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = Color.White
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Submitting...", color = Color.White, fontSize = 18.sp)
+                }
+                else -> {
+                    Text("Submit", color = Color.White, fontSize = 18.sp)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+
+    // Reset error when quiz state changes
+    LaunchedEffect(quizState) {
+        if (quizState is QuizState.Success) {
+            showError = false
+            authViewModel?.resetQuizState()
+        } else if (quizState is QuizState.Error) {
+            showError = true
+            errorMessage = quizState.message
         }
     }
 }

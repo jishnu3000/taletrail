@@ -8,6 +8,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.tailtrail.data.model.QuizAnswer
+import com.example.tailtrail.data.model.QuizSubmissionRequest
 import com.example.tailtrail.data.model.UserDetails
 import com.example.tailtrail.data.model.UserResponse
 import com.example.tailtrail.data.repository.AuthRepository
@@ -29,6 +31,9 @@ class AuthViewModel(private val context: Context) : ViewModel() {
         private set
 
     var signupState by mutableStateOf<AuthState>(AuthState.Idle)
+        private set
+
+    var quizSubmissionState by mutableStateOf<QuizState>(QuizState.Idle)
         private set
 
     var currentUser by mutableStateOf<UserResponse?>(null)
@@ -112,10 +117,51 @@ class AuthViewModel(private val context: Context) : ViewModel() {
         }
     }
 
+    fun submitQuiz(answers: List<QuizAnswer>, callback: (Boolean, String) -> Unit) {
+        val userId = currentUser?.userId
+        if (userId == null) {
+            Log.e(TAG, "Cannot submit quiz: No user logged in")
+            callback(false, "No user logged in")
+            return
+        }
+
+        Log.d(TAG, "Submitting quiz for user: $userId")
+        quizSubmissionState = QuizState.Loading
+
+        viewModelScope.launch {
+            try {
+                val request = QuizSubmissionRequest(userId, answers)
+                Log.d(TAG, "Making quiz submission API call...")
+                val result = repository.submitQuiz(request)
+                result.fold(
+                    onSuccess = { response ->
+                        Log.d(TAG, "Quiz submission successful: ${response.message}")
+                        quizSubmissionState = QuizState.Success(response.message)
+                        callback(true, response.message)
+                    },
+                    onFailure = { exception ->
+                        Log.e(TAG, "Quiz submission failed: ${exception.message}", exception)
+                        quizSubmissionState = QuizState.Error(exception.message ?: "Unknown error occurred")
+                        callback(false, exception.message ?: "Quiz submission failed")
+                    }
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Quiz submission exception: ${e.message}", e)
+                quizSubmissionState = QuizState.Error(e.message ?: "Unknown error occurred")
+                callback(false, e.message ?: "Quiz submission failed")
+            }
+        }
+    }
+
     fun resetStates() {
         Log.d(TAG, "Resetting auth states")
         loginState = AuthState.Idle
         signupState = AuthState.Idle
+    }
+
+    fun resetQuizState() {
+        Log.d(TAG, "Resetting quiz state")
+        quizSubmissionState = QuizState.Idle
     }
 
     fun signOut() {
@@ -202,4 +248,11 @@ sealed class AuthState {
     object Loading : AuthState()
     data class Success(val user: UserResponse) : AuthState()
     data class Error(val message: String) : AuthState()
+}
+
+sealed class QuizState {
+    object Idle : QuizState()
+    object Loading : QuizState()
+    data class Success(val message: String) : QuizState()
+    data class Error(val message: String) : QuizState()
 }

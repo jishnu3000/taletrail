@@ -2,6 +2,8 @@ package com.example.tailtrail.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -16,153 +18,55 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.navigation.NavController
 import com.example.tailtrail.data.util.Utils
 import com.example.tailtrail.ui.viewmodel.AuthViewModel
+import com.example.tailtrail.ui.viewmodel.WalkViewModel
 import kotlinx.coroutines.launch
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 /**
  * Home screen that users see after logging in or signing up
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel) {
-    val currentUser = authViewModel.currentUser
-    val isQuizRequired = currentUser?.isQuiz == 0
+fun HomeScreen(navController: NavController, viewModel: WalkViewModel = viewModel()) {
+    val walks by viewModel.walks.collectAsState()
+    val userId = 4 // Hardcoded for now
 
-    // Setup Snackbar host state and coroutine scope
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        viewModel.fetchWalks(userId)
+    }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Color(0xFFE0E0E0),
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Home",
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF673AB7)
-                )
-            )
-        },
-        bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                tonalElevation = 8.dp
-            ) {
-                NavigationBarItem(
-                    icon = {
-                        Icon(
-                            Icons.Default.Home,
-                            contentDescription = "Home"
-                        )
-                    },
-                    label = { Text("Home") },
-                    selected = true,
-                    onClick = { navController.navigate("home") },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF673AB7),
-                        selectedTextColor = Color(0xFF673AB7),
-                        indicatorColor = Color(0xFF673AB7).copy(alpha = 0.1f)
-                    )
-                )
-                NavigationBarItem(
-                    icon = {
-                        Icon(
-                            Icons.Default.Person,
-                            contentDescription = "Profile"
-                        )
-                    },
-                    label = { Text("Profile") },
-                    selected = false,
-                    onClick = {
-                        if (!isQuizRequired) navController.navigate("profile")
-                    },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF673AB7),
-                        selectedTextColor = Color(0xFF673AB7),
-                        indicatorColor = Color(0xFF673AB7).copy(alpha = 0.1f)
-                    ),
-                    enabled = !isQuizRequired
-                )
-            }
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            // Welcome Text
-            Text(
-                text = "Welcome to Tale Trail${currentUser?.let { ", ${it.name}" } ?: ""}!",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF9C27B0),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 32.dp)
-            )
-
-            Text(
-                text = "You have successfully logged in",
-                fontSize = 18.sp,
-                color = Color.DarkGray,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 64.dp)
-            )
-            if (isQuizRequired) {
-                Button(
-                    onClick = { navController.navigate("quiz") },
+    Column(modifier = Modifier.fillMaxSize()) {
+        Text("Previous Walks", style = MaterialTheme.typography.h5, modifier = Modifier.padding(16.dp))
+        LazyColumn(modifier = Modifier.weight(1f)) {
+            items(walks) { walk ->
+                Card(
                     modifier = Modifier
-                        .fillMaxWidth(0.7f)
-                        .height(56.dp),
-                    shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF9C27B0)
-                    )
+                        .fillMaxWidth()
+                        .padding(8.dp)
                 ) {
-                    Text(
-                        text = "Take Quiz",
-                        fontSize = 18.sp,
-                        color = Color.White
-                    )
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text("Genre: ${walk.genre}", fontWeight = FontWeight.Bold)
+                            Text("Stops: ${walk.noOfStops}")
+                            Text("Stop Distance: ${walk.stopDist}m")
+                        }
+                    }
                 }
             }
-
-            // Sign Out Button
-            Button(
-                onClick = {
-                    // Sign out action
-                    authViewModel.signOut()
-                    // Navigate back to welcome screen
-                    navController.navigate("welcome") {
-                        popUpTo("home") { inclusive = true }
-                    }
-                    // Show sign out message using Snackbar
-                    Utils.showSnackbar(snackbarHostState, scope, "Signed out successfully")
-                },
-                modifier = Modifier
-                    .fillMaxWidth(0.7f)
-                    .height(56.dp),
-                shape = RoundedCornerShape(28.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF9C27B0)
-                )
-            ) {
-                Text(
-                    text = "Sign Out",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
+        }
+        Button(
+            onClick = { navController.navigate("genre") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text("Add Walk")
         }
     }
 }

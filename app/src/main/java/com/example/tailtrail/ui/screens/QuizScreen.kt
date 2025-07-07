@@ -8,10 +8,19 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.tailtrail.data.UserPreferences
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import java.net.HttpURLConnection
+import java.net.URL
 
 val quizQuestions = listOf(
     QuizQuestion(1, "You come across a fork in the road. What do you do?", listOf(
@@ -108,9 +117,45 @@ val quizQuestions = listOf(
 
 data class QuizQuestion(val id: Int, val question: String, val options: List<String>)
 
+@Serializable
+data class QuizAnswer(val questionId: Int, val question: String, val selectedOption: String)
+@Serializable
+data class QuizSubmission(val userId: Int, val answers: List<QuizAnswer>)
+
+suspend fun submitQuizApi(submission: QuizSubmission): Boolean {
+    val url = URL("https://taletrails-backend.onrender.com/users/submit-quiz")
+    val conn = url.openConnection() as HttpURLConnection
+    conn.requestMethod = "POST"
+    conn.setRequestProperty("Content-Type", "application/json")
+    conn.doOutput = true
+    conn.connectTimeout = 60000 // 60 seconds
+    conn.readTimeout = 60000 // 60 seconds
+    val jsonBody = Json.encodeToString(submission)
+    android.util.Log.d("QuizApiDebug", "Request: $jsonBody")
+    conn.outputStream.use { it.write(jsonBody.toByteArray()) }
+    val responseCode = conn.responseCode
+    val responseBody = try { conn.inputStream.bufferedReader().readText() } catch (e: Exception) { null }
+    val errorBody = try { conn.errorStream?.bufferedReader()?.readText() } catch (e: Exception) { null }
+    android.util.Log.d("QuizApiDebug", "Response code: $responseCode")
+    android.util.Log.d("QuizApiDebug", "Response body: $responseBody")
+    android.util.Log.d("QuizApiDebug", "Error body: $errorBody")
+    conn.disconnect()
+    return responseCode in 200..299
+}
+
 @Composable
 fun QuizScreen(navController: NavHostController) {
     var answers by remember { mutableStateOf(MutableList(quizQuestions.size) { -1 }) }
+    var loading by remember { mutableStateOf(false) }
+    var resultMessage by remember { mutableStateOf<String?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val userPreferences = remember { UserPreferences(context) }
+    var userId by remember { mutableStateOf<Int?>(null) }
+    LaunchedEffect(Unit) {
+        userId = userPreferences.userIdFlow.first()
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -152,11 +197,45 @@ fun QuizScreen(navController: NavHostController) {
         }
         Spacer(modifier = Modifier.height(24.dp))
         Button(
-            onClick = { /* No functionality yet */ },
+            onClick = {
+                if (answers.any { it == -1 }) {
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar("Please answer all questions.")
+                    }
+                    return@Button
+                }
+                if (userId == null) {
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar("User not logged in.")
+                    }
+                    return@Button
+                }
+                loading = true
+                resultMessage = null
+                coroutineScope.launch {
+                    val submission = QuizSubmission(
+                        userId = userId!!,
+                        answers = quizQuestions.mapIndexed { idx, q ->
+                            QuizAnswer(
+                                questionId = q.id,
+                                question = q.question,
+                                selectedOption = q.options[answers[idx]]
+                            )
+                        }
+                    )
+                    val success = try { submitQuizApi(submission) } catch (e: Exception) { false }
+                    loading = false
+                    resultMessage = if (success) "Quiz submitted successfully!" else "Submission failed. Please try again."
+                    snackbarHostState.showSnackbar(resultMessage!!)
+                }
+            },
             modifier = Modifier.fillMaxWidth(0.7f),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9C27B0))
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9C27B0)),
+            enabled = !loading
         ) {
-            Text("Submit", color = Color.White, fontSize = 18.sp)
+            if (loading) CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
+            else Text("Submit", color = Color.White, fontSize = 18.sp)
         }
+        SnackbarHost(hostState = snackbarHostState)
     }
 }

@@ -8,10 +8,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.tailtrail.data.UserPreferences
 import com.example.tailtrail.data.model.UserDetails
 import com.example.tailtrail.data.model.UserResponse
 import com.example.tailtrail.data.repository.AuthRepository
-import com.example.tailtrail.data.storage.UserPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -20,9 +20,10 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
-class AuthViewModel(private val context: Context) : ViewModel() {
+class AuthViewModel(context: Context) : ViewModel() {
+    private val appContext = context.applicationContext
     private val repository = AuthRepository()
-    private val userPreferences = UserPreferences(context)
+    private val userPreferences = UserPreferences(appContext)
     private val TAG = "AuthViewModel"
 
     var loginState by mutableStateOf<AuthState>(AuthState.Idle)
@@ -38,13 +39,10 @@ class AuthViewModel(private val context: Context) : ViewModel() {
         private set
 
     init {
-        // Check for stored user data when ViewModel is initialized
         viewModelScope.launch {
-            val userId = userPreferences.userId.first()
-            val userName = userPreferences.userName.first()
-
-            if (userId != null && userName != null) {
-                currentUser = UserResponse(userId, userName, 0) // Default isQuiz to 0 when restoring from preferences
+            val userId = userPreferences.userIdFlow.first()
+            if (userId != null) {
+                currentUser = UserResponse(userId, "", 0) // Name not stored, set as empty
                 Log.d(TAG, "Restored user from preferences: $currentUser")
             }
         }
@@ -60,12 +58,12 @@ class AuthViewModel(private val context: Context) : ViewModel() {
                 val result = repository.login(phoneNumber, password)
                 result.fold(
                     onSuccess = { user ->
-                        Log.d(TAG, "Login successful: $user")
+                        viewModelScope.launch {
+                            userPreferences.saveUserId(user.userId)
+                        }
                         currentUser = user
-                        // Save user data to persistent storage
-                        userPreferences.saveUserInfo(user.userId, user.name)
                         loginState = AuthState.Success(user)
-                        callback(true, "Login successful")
+                        callback(true, "Login successful!")
                     },
                     onFailure = { exception ->
                         Log.e(TAG, "Login failed: ${exception.message}", exception)
@@ -91,12 +89,12 @@ class AuthViewModel(private val context: Context) : ViewModel() {
                 val result = repository.signup(name, phoneNumber, email, password, pincode)
                 result.fold(
                     onSuccess = { user ->
-                        Log.d(TAG, "Signup successful: $user")
+                        viewModelScope.launch {
+                            userPreferences.saveUserId(user.userId)
+                        }
                         currentUser = user
-                        // Save user data to persistent storage
-                        userPreferences.saveUserInfo(user.userId, user.name)
                         signupState = AuthState.Success(user)
-                        callback(true, "Signup successful")
+                        callback(true, "Signup successful!")
                     },
                     onFailure = { exception ->
                         Log.e(TAG, "Signup failed: ${exception.message}", exception)
@@ -121,7 +119,7 @@ class AuthViewModel(private val context: Context) : ViewModel() {
     fun signOut() {
         Log.d(TAG, "Signing out user")
         viewModelScope.launch {
-            userPreferences.clearUserData()
+            userPreferences.clearUserId()
             currentUser = null
             resetStates()
         }

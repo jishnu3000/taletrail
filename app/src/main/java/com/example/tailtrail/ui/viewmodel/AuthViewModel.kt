@@ -136,6 +136,13 @@ class AuthViewModel(private val context: Context) : ViewModel() {
                 result.fold(
                     onSuccess = { response ->
                         Log.d(TAG, "Quiz submission successful: ${response.message}")
+
+                        // Update current user's isQuiz to 1 to enable bottom navigation
+                        currentUser?.let { user ->
+                            currentUser = user.copy(isQuiz = 1)
+                            Log.d(TAG, "Updated user isQuiz to 1: $currentUser")
+                        }
+
                         quizSubmissionState = QuizState.Success(response.message)
                         callback(true, response.message)
                     },

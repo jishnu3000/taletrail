@@ -3,6 +3,7 @@ package com.example.tailtrail.data.repository
 import android.util.Log
 import com.example.tailtrail.data.api.RetrofitClient
 import com.example.tailtrail.data.model.LoginRequest
+import com.example.tailtrail.data.model.QuizAnswersResponse
 import com.example.tailtrail.data.model.QuizSubmissionRequest
 import com.example.tailtrail.data.model.QuizSubmissionResponse
 import com.example.tailtrail.data.model.SignupRequest
@@ -157,6 +158,43 @@ class AuthRepository {
                 e.message?.contains("timeout") == true -> "Quiz submission timed out after 60 seconds. Please check your internet connection and try again."
                 e.message?.contains("Unable to resolve host") == true -> "No internet connection. Please check your network."
                 else -> "Quiz submission failed: ${e.message ?: "Unknown error occurred"}"
+            }
+            Result.failure(Exception(errorMessage))
+        }
+    }
+
+    suspend fun getQuizAnswers(userId: Int): Result<QuizAnswersResponse> {
+        return try {
+            Log.d(TAG, "Fetching quiz answers for user: $userId")
+            
+            val response = authApi.getQuizAnswers(userId)
+            Log.d(TAG, "Quiz answers response code: ${response.code()}")
+            Log.d(TAG, "Quiz answers response body: ${response.body()}")
+
+            if (response.isSuccessful && response.body() != null) {
+                Log.d(TAG, "Quiz answers fetch successful: ${response.body()}")
+                Result.success(response.body()!!)
+            } else {
+                val errorMessage = when {
+                    response.code() == 404 -> "User not found"
+                    response.code() == 400 -> "Invalid user ID or no quiz answers found"
+                    response.code() == 500 -> "Server error. Please try again later"
+                    response.errorBody() != null -> {
+                        val errorBody = response.errorBody()?.string()
+                        Log.e(TAG, "Quiz answers error body: $errorBody")
+                        "Failed to fetch quiz answers: ${response.message()}"
+                    }
+                    else -> "Failed to fetch quiz answers: ${response.message()}"
+                }
+                Log.e(TAG, "Quiz answers fetch failed: $errorMessage")
+                Result.failure(Exception(errorMessage))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Quiz answers fetch exception: ${e.message}", e)
+            val errorMessage = when {
+                e.message?.contains("timeout") == true -> "Request timeout. Please check your internet connection."
+                e.message?.contains("Unable to resolve host") == true -> "No internet connection. Please check your network."
+                else -> "Failed to fetch quiz answers: ${e.message ?: "Unknown error occurred"}"
             }
             Result.failure(Exception(errorMessage))
         }

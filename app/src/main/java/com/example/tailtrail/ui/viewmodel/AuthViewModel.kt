@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.tailtrail.data.model.QuizAnswer
+import com.example.tailtrail.data.model.QuizAnswersResponse
 import com.example.tailtrail.data.model.QuizSubmissionRequest
 import com.example.tailtrail.data.model.UserDetails
 import com.example.tailtrail.data.model.UserResponse
@@ -40,6 +41,12 @@ class AuthViewModel(private val context: Context) : ViewModel() {
         private set
 
     var userDetails by mutableStateOf<UserDetails?>(null)
+        private set
+
+    var quizAnswers by mutableStateOf<QuizAnswersResponse?>(null)
+        private set
+
+    var quizAnswersState by mutableStateOf<QuizAnswersState>(QuizAnswersState.Idle)
         private set
 
     init {
@@ -215,6 +222,43 @@ class AuthViewModel(private val context: Context) : ViewModel() {
         }
     }
 
+    fun fetchQuizAnswers() {
+        val userId = currentUser?.userId
+        if (userId == null) {
+            Log.e(TAG, "Cannot fetch quiz answers: No user logged in")
+            quizAnswersState = QuizAnswersState.Error("No user logged in")
+            return
+        }
+
+        Log.d(TAG, "Fetching quiz answers for user: $userId")
+        quizAnswersState = QuizAnswersState.Loading
+
+        viewModelScope.launch {
+            try {
+                val result = repository.getQuizAnswers(userId)
+                result.fold(
+                    onSuccess = { response ->
+                        Log.d(TAG, "Quiz answers fetch successful: ${response.answers.size} answers")
+                        quizAnswers = response
+                        quizAnswersState = QuizAnswersState.Success(response)
+                    },
+                    onFailure = { exception ->
+                        Log.e(TAG, "Quiz answers fetch failed: ${exception.message}", exception)
+                        quizAnswersState = QuizAnswersState.Error(exception.message ?: "Unknown error occurred")
+                    }
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Quiz answers fetch exception: ${e.message}", e)
+                quizAnswersState = QuizAnswersState.Error(e.message ?: "Unknown error occurred")
+            }
+        }
+    }
+
+    fun resetQuizAnswersState() {
+        Log.d(TAG, "Resetting quiz answers state")
+        quizAnswersState = QuizAnswersState.Idle
+    }
+
     private suspend fun getUserDetailsFromApi(userId: Int): UserDetails? = withContext(Dispatchers.IO) {
         val url = URL("https://taletrails-backend.onrender.com/users/details?userId=$userId")
         val connection = url.openConnection() as HttpURLConnection
@@ -262,4 +306,11 @@ sealed class QuizState {
     object Loading : QuizState()
     data class Success(val message: String) : QuizState()
     data class Error(val message: String) : QuizState()
+}
+
+sealed class QuizAnswersState {
+    object Idle : QuizAnswersState()
+    object Loading : QuizAnswersState()
+    data class Success(val quizAnswers: QuizAnswersResponse) : QuizAnswersState()
+    data class Error(val message: String) : QuizAnswersState()
 }

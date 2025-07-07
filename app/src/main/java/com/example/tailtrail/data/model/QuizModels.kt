@@ -20,3 +20,9 @@ data class QuizErrorResponse(
     val errorShortDescription: String,
     val errorCode: String
 )
+
+// New models for fetching quiz answers
+data class QuizAnswersResponse(
+    val userId: Int,
+    val answers: List<QuizAnswer>
+)

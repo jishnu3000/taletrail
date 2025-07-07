@@ -1,6 +1,7 @@
 package com.example.tailtrail.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -18,6 +20,9 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Quiz
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -119,62 +124,120 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
                     )
                 )
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Profile Avatar
+            if (userDetails == null) {
+                // Loading state - center the progress indicator
                 Box(
-                    modifier = Modifier
-                        .size(120.dp)
-                        .clip(CircleShape)
-                        .background(Color.White),
+                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        Icons.Default.Person,
-                        contentDescription = "Profile Picture",
-                        modifier = Modifier.size(60.dp),
-                        tint = Color(0xFF673AB7)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-                if (userDetails == null) {
                     CircularProgressIndicator(color = Color.White)
-                } else {
-                    // User Info Cards
-                    ProfileInfoCard(
-                        icon = Icons.Default.Person,
-                        label = "Name",
-                        value = userDetails.name
-                    )
+                }
+            } else {
+                // Content in LazyColumn for scrollability
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    item {
+                        // Profile Avatar
+                        Box(
+                            modifier = Modifier
+                                .size(120.dp)
+                                .clip(CircleShape)
+                                .background(Color.White),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.Person,
+                                contentDescription = "Profile Picture",
+                                modifier = Modifier.size(60.dp),
+                                tint = Color(0xFF673AB7)
+                            )
+                        }
+                    }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
 
-                    ProfileInfoCard(
-                        icon = Icons.Default.Phone,
-                        label = "Phone Number",
-                        value = userDetails.phoneNumber
-                    )
+                    item {
+                        // Name Card
+                        ProfileInfoCard(
+                            icon = Icons.Default.Person,
+                            label = "Name",
+                            value = userDetails.name
+                        )
+                    }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    item {
+                        // Phone Number Card
+                        ProfileInfoCard(
+                            icon = Icons.Default.Phone,
+                            label = "Phone Number",
+                            value = userDetails.phoneNumber
+                        )
+                    }
 
-                    ProfileInfoCard(
-                        icon = Icons.Default.Home,
-                        label = "Pincode",
-                        value = userDetails.pincode
-                    )
+                    item {
+                        // Pincode Card
+                        ProfileInfoCard(
+                            icon = Icons.Default.Home,
+                            label = "Pincode",
+                            value = userDetails.pincode
+                        )
+                    }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    item {
+                        // Email Card
+                        ProfileInfoCard(
+                            icon = Icons.Default.Email,
+                            label = "Email",
+                            value = userDetails.email
+                        )
+                    }
 
-                    ProfileInfoCard(
-                        icon = Icons.Default.Email,
-                        label = "Email",
-                        value = userDetails.email
-                    )
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+
+                    item {
+                        // View Quiz Answers Button
+                        Button(
+                            onClick = { navController.navigate("quiz_answers") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            shape = RoundedCornerShape(28.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.White,
+                                contentColor = Color(0xFF673AB7)
+                            ),
+                            elevation = ButtonDefaults.buttonElevation(
+                                defaultElevation = 8.dp,
+                                pressedElevation = 12.dp
+                            )
+                        ) {
+                            Icon(
+                                Icons.Default.Quiz,
+                                contentDescription = "Quiz Answers",
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "View Quiz Answers",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+
+                    item {
+                        // Bottom spacing for better scrolling experience
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
             }
         }

@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.tailtrail.ui.screens.HomeScreen
 import com.example.tailtrail.ui.screens.LoginScreen
+import com.example.tailtrail.ui.screens.QuizAnswersScreen
 import com.example.tailtrail.ui.screens.QuizScreen
 import com.example.tailtrail.ui.screens.SignUpScreen
 import com.example.tailtrail.ui.screens.UserProfileScreen
@@ -59,6 +60,9 @@ fun TailTrailApp() {
         }
         composable("quiz") {
             QuizScreen(navController = navController, authViewModel = authViewModel)
+        }
+        composable("quiz_answers") {
+            QuizAnswersScreen(navController = navController, authViewModel = authViewModel)
         }
     }
 }

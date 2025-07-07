@@ -44,7 +44,7 @@ class AuthViewModel(private val context: Context) : ViewModel() {
             val userName = userPreferences.userName.first()
 
             if (userId != null && userName != null) {
-                currentUser = UserResponse(userId, userName)
+                currentUser = UserResponse(userId, userName, 0) // Default isQuiz to 0 when restoring from preferences
                 Log.d(TAG, "Restored user from preferences: $currentUser")
             }
         }

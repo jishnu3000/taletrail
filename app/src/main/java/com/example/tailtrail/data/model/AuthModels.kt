@@ -15,5 +15,6 @@ data class SignupRequest(
 
 data class UserResponse(
     val userId: Int,
-    val name: String
+    val name: String,
+    val isQuiz: Int
 )

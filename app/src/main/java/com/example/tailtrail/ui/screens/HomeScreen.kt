@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel) {
     val currentUser = authViewModel.currentUser
+    val isQuizRequired = currentUser?.isQuiz == 0
 
     // Setup Snackbar host state and coroutine scope
     val snackbarHostState = remember { SnackbarHostState() }
@@ -79,12 +80,15 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel) {
                     },
                     label = { Text("Profile") },
                     selected = false,
-                    onClick = { navController.navigate("profile") },
+                    onClick = {
+                        if (!isQuizRequired) navController.navigate("profile")
+                    },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color(0xFF673AB7),
                         selectedTextColor = Color(0xFF673AB7),
                         indicatorColor = Color(0xFF673AB7).copy(alpha = 0.1f)
-                    )
+                    ),
+                    enabled = !isQuizRequired
                 )
             }
         }
@@ -99,7 +103,7 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel) {
         ) {
             // Welcome Text
             Text(
-                text = "Welcome to Tail Trail${currentUser?.let { ", ${it.name}" } ?: ""}!",
+                text = "Welcome to Tale Trail${currentUser?.let { ", ${it.name}" } ?: ""}!",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF9C27B0),
@@ -114,6 +118,24 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel) {
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(bottom = 64.dp)
             )
+            if (isQuizRequired) {
+                Button(
+                    onClick = { navController.navigate("quiz") },
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .height(56.dp),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF9C27B0)
+                    )
+                ) {
+                    Text(
+                        text = "Take Quiz",
+                        fontSize = 18.sp,
+                        color = Color.White
+                    )
+                }
+            }
 
             // Sign Out Button
             Button(

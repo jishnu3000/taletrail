@@ -37,4 +37,9 @@ object RetrofitClient {
         Log.d(TAG, "Creating AuthApi instance")
         retrofit.create(AuthApi::class.java)
     }
+    
+    val walkApi: WalkApi by lazy {
+        Log.d(TAG, "Creating WalkApi instance")
+        retrofit.create(WalkApi::class.java)
+    }
 }

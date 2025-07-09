@@ -54,9 +54,10 @@ class AuthViewModel(private val context: Context) : ViewModel() {
         viewModelScope.launch {
             val userId = userPreferences.userId.first()
             val userName = userPreferences.userName.first()
+            val isQuiz = userPreferences.isQuiz.first() ?: 0
 
             if (userId != null && userName != null) {
-                currentUser = UserResponse(userId, userName, 0) // Default isQuiz to 0 when restoring from preferences
+                currentUser = UserResponse(userId, userName, isQuiz)
                 Log.d(TAG, "Restored user from preferences: $currentUser")
             }
         }
@@ -75,7 +76,7 @@ class AuthViewModel(private val context: Context) : ViewModel() {
                         Log.d(TAG, "Login successful: $user")
                         currentUser = user
                         // Save user data to persistent storage
-                        userPreferences.saveUserInfo(user.userId, user.name)
+                        userPreferences.saveUserInfo(user.userId, user.name, user.isQuiz)
                         loginState = AuthState.Success(user)
                         callback(true, "Login successful")
                     },
@@ -106,7 +107,7 @@ class AuthViewModel(private val context: Context) : ViewModel() {
                         Log.d(TAG, "Signup successful: $user")
                         currentUser = user
                         // Save user data to persistent storage
-                        userPreferences.saveUserInfo(user.userId, user.name)
+                        userPreferences.saveUserInfo(user.userId, user.name, user.isQuiz)
                         signupState = AuthState.Success(user)
                         callback(true, "Signup successful")
                     },
@@ -147,6 +148,8 @@ class AuthViewModel(private val context: Context) : ViewModel() {
                         // Update current user's isQuiz to 1 to enable bottom navigation
                         currentUser?.let { user ->
                             currentUser = user.copy(isQuiz = 1)
+                            // Update persistent storage
+                            userPreferences.setQuizTaken(1)
                             Log.d(TAG, "Updated user isQuiz to 1: $currentUser")
                         }
 
@@ -185,6 +188,10 @@ class AuthViewModel(private val context: Context) : ViewModel() {
             currentUser = null
             resetStates()
         }
+    }
+
+    fun needsQuiz(): Boolean {
+        return currentUser?.isQuiz == 0
     }
 
     fun testApiConnection(callback: (Boolean, String) -> Unit) {

@@ -1,24 +1,36 @@
 package com.example.tailtrail.data.repository
 
-import com.example.tailtrail.data.api.WalkApiService
-import com.example.tailtrail.data.api.WalkRequest
-import com.example.tailtrail.data.api.WalkResponse
-import com.example.tailtrail.data.api.AddWalkResponse
-import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import com.example.tailtrail.data.api.WalkApi
+import com.example.tailtrail.data.model.AddWalkRequest
+import com.example.tailtrail.data.model.Walk
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-class WalkRepository {
-    private val api: WalkApiService
-
-    init {
-        val retrofit = Retrofit.Builder()
-            .baseUrl("https://taletrails-backend.onrender.com/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-        api = retrofit.create(WalkApiService::class.java)
+class WalkRepository(private val walkApi: WalkApi) {
+    
+    suspend fun addWalk(request: AddWalkRequest): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val response = walkApi.addWalk(request)
+            if (response.isSuccessful) {
+                Result.success(response.body()?.message ?: "Walk added successfully")
+            } else {
+                Result.failure(Exception("Failed to add walk: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
-
-    suspend fun getUserWalks(userId: Int): Response<List<WalkResponse>> = api.getUserWalks(userId)
-    suspend fun addWalk(walkRequest: WalkRequest): Response<AddWalkResponse> = api.addWalk(walkRequest)
+    
+    suspend fun getUserWalks(userId: Int): Result<List<Walk>> = withContext(Dispatchers.IO) {
+        try {
+            val response = walkApi.getUserWalks(userId)
+            if (response.isSuccessful) {
+                Result.success(response.body() ?: emptyList())
+            } else {
+                Result.failure(Exception("Failed to get walks: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 } 

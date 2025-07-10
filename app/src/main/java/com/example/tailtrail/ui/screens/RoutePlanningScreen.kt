@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,6 +32,7 @@ import com.example.tailtrail.data.util.GeocodingUtil
 import com.example.tailtrail.ui.viewmodel.WalkViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import android.location.LocationManager
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.GoogleMap
@@ -57,11 +59,19 @@ fun RoutePlanningScreen(
     var mapView by remember { mutableStateOf<MapView?>(null) }
     var hasLocationPermission by remember { mutableStateOf(false) }
     var googleMapObj by remember { mutableStateOf<GoogleMap?>(null) }
+    var customMarkers by remember { mutableStateOf<MutableList<com.google.android.gms.maps.model.Marker>>(mutableListOf()) }
+    var updateMarkersFunction by remember { mutableStateOf<(() -> Unit)?>(null) }
+    var mapError by remember { mutableStateOf<String?>(null) }
     
     // Address states
     var currentLocationAddress by remember { mutableStateOf<String>("") }
+    var stopDist by remember { mutableStateOf("100") }
+    var showInstructions by remember { mutableStateOf(false) }
+    
+
     
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    val locationManager = remember { context.getSystemService(android.content.Context.LOCATION_SERVICE) as LocationManager }
     
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -101,8 +111,33 @@ fun RoutePlanningScreen(
                                 context, it.latitude, it.longitude
                             )
                         }
+                        
+                        // Zoom to current location when it becomes available
+                        googleMapObj?.let { map ->
+                            map.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation!!, 17f))
+                            
+                            // Force enable my-location when we have a location
+                            if (hasLocationPermission) {
+                                try {
+                                    map.isMyLocationEnabled = true
+                                } catch (e: SecurityException) {
+                                    // Handle permission denied
+                                }
+                            }
+                        }
                     }
                 }
+            } catch (e: SecurityException) {
+                // Handle permission denied
+            }
+        }
+    }
+    
+    // Enable my-location feature when permissions are granted
+    LaunchedEffect(hasLocationPermission, googleMapObj) {
+        if (hasLocationPermission && googleMapObj != null) {
+            try {
+                googleMapObj?.isMyLocationEnabled = true
             } catch (e: SecurityException) {
                 // Handle permission denied
             }
@@ -129,6 +164,15 @@ fun RoutePlanningScreen(
                         )
                     }
                 },
+                actions = {
+                    IconButton(onClick = { showInstructions = !showInstructions }) {
+                        Icon(
+                            Icons.Default.Info,
+                            contentDescription = "Instructions",
+                            tint = Color.White
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color(0xFF673AB7)
                 )
@@ -141,16 +185,18 @@ fun RoutePlanningScreen(
                     FloatingActionButton(
                         onClick = {
                             val route = mutableListOf<RoutePoint>()
-                            // Add current location as first point
+                            // Add current location as starting point (order 1)
                             currentLocation?.let { location ->
                                 route.add(RoutePoint(1, location.latitude, location.longitude))
                             }
-                            // Add stops
+                            // Add user-selected stops (orders 2, 3, 4, etc.)
                             stops.forEachIndexed { index, stop ->
                                 route.add(stop.copy(order = index + 2))
                             }
                             if (route.isNotEmpty()) {
-                                walkViewModel.addWalk(userId, genre, route)
+                                // Send route with current location as start + user stops
+                                // Pass only the user-selected stops count (excluding current location)
+                                walkViewModel.addWalk(userId, genre, route, stopDist.toIntOrNull() ?: 100, stops.size)
                                 navController.navigate("home") {
                                     popUpTo("home") { inclusive = true }
                                 }
@@ -170,80 +216,194 @@ fun RoutePlanningScreen(
                 .padding(innerPadding)
         ) {
             // Map View
-            AndroidView(
-                factory = { context ->
-                    MapView(context).apply {
-                        onCreate(null)
-                        mapView = this
-                        getMapAsync { googleMap ->
-                            googleMapObj = googleMap
-                            googleMap.uiSettings.isZoomControlsEnabled = true
-                            googleMap.uiSettings.isMyLocationButtonEnabled = true
-                            googleMap.isMyLocationEnabled = hasLocationPermission
-
-                            // Move camera to current location if available
-                            currentLocation?.let { location ->
-                                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 15f))
-                            }
-
-                            // Draw all markers
-                            fun updateMarkers() {
-                                googleMap.clear()
-                                // Current location marker
-                                currentLocation?.let { location ->
-                                    googleMap.addMarker(
-                                        MarkerOptions()
-                                            .position(location)
-                                            .title("Current Location")
-                                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
-                                    )
-                                }
-                                // Stops markers
-                                stops.forEach { stop ->
-                                    val stopLatLng = LatLng(stop.latitude, stop.longitude)
-                                    googleMap.addMarker(
-                                        MarkerOptions()
-                                            .position(stopLatLng)
-                                            .title("Stop ${stop.order}")
-                                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
-                                    )
-                                }
-                            }
-                            updateMarkers()
-
-                            // Listen for map clicks to add a stop
-                            googleMap.setOnMapClickListener { latLng ->
-                                val newStop = RoutePoint(
-                                    order = stops.size + 1,
-                                    latitude = latLng.latitude,
-                                    longitude = latLng.longitude
-                                )
-                                stops = stops + newStop
-                                // Get address for the new stop
-                                scope.launch {
-                                    val address = GeocodingUtil.getAddressFromCoordinates(
-                                        context, latLng.latitude, latLng.longitude
-                                    )
-                                    stopAddresses = stopAddresses + (newStop.order to address)
-                                }
-                                updateMarkers()
-                            }
-
-                            // Listen for my location button click
-                            googleMap.setOnMyLocationButtonClickListener {
-                                currentLocation?.let { location ->
-                                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 17f))
-                                    updateMarkers()
-                                }
-                                true
-                            }
-                        }
-                    }
-                },
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(300.dp)
-            )
+            ) {
+                AndroidView(
+                    factory = { context ->
+                        MapView(context).apply {
+                            onCreate(null)
+                            mapView = this
+                            getMapAsync { googleMap ->
+                                try {
+                                    googleMapObj = googleMap
+                                    
+                                    // Basic map settings
+                                    googleMap.uiSettings.isZoomControlsEnabled = true
+                                    googleMap.uiSettings.isMyLocationButtonEnabled = true
+                                    googleMap.uiSettings.isCompassEnabled = true
+                                    googleMap.uiSettings.isMapToolbarEnabled = true
+                                
+                                    // Enable my-location feature if permissions are granted
+                                    if (hasLocationPermission) {
+                                        try {
+                                            googleMap.isMyLocationEnabled = true
+                                            // Force enable my-location button
+                                            googleMap.uiSettings.isMyLocationButtonEnabled = true
+                                        } catch (e: SecurityException) {
+                                            // Handle permission denied
+                                        }
+                                    }
+                                    
+                                    // Also enable my-location button
+                                    googleMap.uiSettings.isMyLocationButtonEnabled = true
+                                    
+                                    // Enable my-location after a short delay to ensure map is ready
+                                    scope.launch {
+                                        kotlinx.coroutines.delay(1000)
+                                        if (hasLocationPermission) {
+                                            try {
+                                                googleMap.isMyLocationEnabled = true
+                                            } catch (e: SecurityException) {
+                                                // Handle permission denied
+                                            }
+                                        }
+                                        
+                                        // Try again after 2 seconds
+                                        kotlinx.coroutines.delay(1000)
+                                        if (hasLocationPermission) {
+                                            try {
+                                                googleMap.isMyLocationEnabled = true
+                                            } catch (e: SecurityException) {
+                                                // Handle permission denied
+                                            }
+                                        }
+                                    }
+
+                                    // Move camera to current location if available, otherwise show a default location
+                                    currentLocation?.let { location ->
+                                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 17f))
+                                        
+                                        // Add a custom current location marker as fallback
+                                        googleMap.addMarker(
+                                            MarkerOptions()
+                                                .position(location)
+                                                .title("Current Location")
+                                                .snippet("You are here")
+                                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+                                        )
+                                    } ?: run {
+                                        // Fallback to a default location (e.g., city center)
+                                        val defaultLocation = LatLng(40.7128, -74.0060) // New York City
+                                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 10f))
+                                        
+                                        // Add a test marker to verify map is working
+                                        googleMap.addMarker(
+                                            MarkerOptions()
+                                                .position(defaultLocation)
+                                                .title("Test Location")
+                                                .snippet("Map is working!")
+                                        )
+                                    }
+                                    
+                                    // Draw all markers function
+                                    fun updateMarkers() {
+                                        // Clear only custom markers, preserve built-in my-location
+                                        customMarkers.forEach { it.remove() }
+                                        customMarkers = mutableListOf()
+                                        
+                                        // Add current location marker if available
+                                        currentLocation?.let { location ->
+                                            val currentLocationMarker = googleMap.addMarker(
+                                                MarkerOptions()
+                                                    .position(location)
+                                                    .title("Current Location")
+                                                    .snippet("You are here")
+                                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+                                            )
+                                            currentLocationMarker?.let { customMarkers.add(it) }
+                                        }
+                                        
+                                        // Add markers for user-selected stops
+                                        stops.forEach { stop ->
+                                            val stopLatLng = LatLng(stop.latitude, stop.longitude)
+                                            val marker = googleMap.addMarker(
+                                                MarkerOptions()
+                                                    .position(stopLatLng)
+                                                    .title("Stop ${stop.order}")
+                                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
+                                            )
+                                            marker?.let { customMarkers.add(it) }
+                                        }
+                                    }
+                                    
+                                    // Store the updateMarkers function for external use
+                                    updateMarkersFunction = { updateMarkers() }
+                                    
+                                    // Set up map click listener for adding stops
+                                    googleMap.setOnMapClickListener { latLng ->
+                                        val newStop = RoutePoint(stops.size + 1, latLng.latitude, latLng.longitude)
+                                        stops = stops + newStop
+                                        
+                                        // Get address for the new stop
+                                        scope.launch {
+                                            val address = GeocodingUtil.getAddressFromCoordinates(context, latLng.latitude, latLng.longitude)
+                                            stopAddresses = stopAddresses + (newStop.order to address)
+                                        }
+                                        
+                                        // Update all markers
+                                        updateMarkers()
+                                    }
+                                    
+                                    // Initial markers
+                                    updateMarkers()
+
+                                    // Listen for my location button click
+                                    googleMap.setOnMyLocationButtonClickListener {
+                                        currentLocation?.let { location ->
+                                            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 17f))
+                                            updateMarkers()
+                                        }
+                                        true
+                                    }
+                                } catch (e: Exception) {
+                                    // Handle any map initialization errors
+                                    e.printStackTrace()
+                                    mapError = e.message ?: "Unknown map error"
+                                }
+                            }
+                        }
+                    }
+                )
+                
+                // Loading indicator or error
+                if (googleMapObj == null) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.White),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            if (mapError != null) {
+                                Text(
+                                    text = "Map Error: $mapError",
+                                    fontSize = 14.sp,
+                                    color = Color.Red,
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "Please check your internet connection and try again",
+                                    fontSize = 12.sp,
+                                    color = Color.DarkGray,
+                                    textAlign = TextAlign.Center
+                                )
+                            } else {
+                                Text(
+                                    text = "Loading map...",
+                                    fontSize = 16.sp,
+                                    color = Color.DarkGray
+                                )
+                            }
+                        }
+                    }
+                }
+            }
             
             // Route Information
             LazyColumn(
@@ -252,6 +412,53 @@ fun RoutePlanningScreen(
                     .weight(1f)
                     .padding(16.dp)
             ) {
+                // Instructions (collapsible)
+                if (showInstructions) {
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp)
+                            ) {
+                                Text(
+                                    text = "Instructions:",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color(0xFF673AB7)
+                                )
+                                
+                                Text(
+                                    text = "1. Tap the map to add a stop",
+                                    fontSize = 14.sp,
+                                    color = Color.DarkGray
+                                )
+                                
+                                Text(
+                                    text = "2. Select stops on map",
+                                    fontSize = 14.sp,
+                                    color = Color.DarkGray
+                                )
+                                
+                                Text(
+                                    text = "3. Tap ✓ to save your route",
+                                    fontSize = 14.sp,
+                                    color = Color.DarkGray
+                                )
+                                
+                                Text(
+                                    text = "4. Tap the location button (top-right) to show your position",
+                                    fontSize = 14.sp,
+                                    color = Color.DarkGray
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                // Stop Distance Input
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -262,37 +469,22 @@ fun RoutePlanningScreen(
                             modifier = Modifier.padding(16.dp)
                         ) {
                             Text(
-                                text = "Route Information",
-                                fontSize = 20.sp,
+                                text = "Route Settings",
+                                fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF673AB7)
                             )
                             
                             Spacer(modifier = Modifier.height(8.dp))
                             
-                            Text(
-                                text = "Instructions:",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color(0xFF673AB7)
-                            )
-                            
-                            Text(
-                                text = "1. Tap the map to add a stop",
-                                fontSize = 14.sp,
-                                color = Color.DarkGray
-                            )
-                            
-                            Text(
-                                text = "2. Use the + button to add stops from current location",
-                                fontSize = 14.sp,
-                                color = Color.DarkGray
-                            )
-                            
-                            Text(
-                                text = "3. Tap ✓ to save your route",
-                                fontSize = 14.sp,
-                                color = Color.DarkGray
+                            OutlinedTextField(
+                                value = stopDist,
+                                onValueChange = { stopDist = it },
+                                label = { Text("Stop Distance (meters)") },
+                                modifier = Modifier.fillMaxWidth(),
+                                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
+                                )
                             )
                             
                             Spacer(modifier = Modifier.height(8.dp))
@@ -306,26 +498,61 @@ fun RoutePlanningScreen(
                             }
                             
                             Text(
-                                text = "Stops: ${stops.size}",
+                                text = "Selected Stops: ${stops.size}",
                                 fontSize = 14.sp,
                                 color = Color.DarkGray
                             )
+                            
+                            Text(
+                                text = "Location Permission: ${if (hasLocationPermission) "Granted" else "Denied"}",
+                                fontSize = 12.sp,
+                                color = if (hasLocationPermission) Color.Green else Color.Red
+                            )
+                            
+                            Text(
+                                text = "GPS Enabled: ${if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) "Yes" else "No"}",
+                                fontSize = 12.sp,
+                                color = if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) Color.Green else Color.Red
+                            )
+                            // Removed manual 'Enable My Location' button
                         }
                     }
                 }
                 
-                if (stops.isNotEmpty()) {
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Stops",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF673AB7)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+                
+                if (stops.isEmpty()) {
                     item {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "Stops",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF673AB7)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(32.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "No stops selected. Tap the map to add stops.",
+                                    fontSize = 16.sp,
+                                    color = Color.DarkGray,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
                     }
-                    
+                } else {
                     itemsIndexed(stops) { index, stop ->
                         Card(
                             modifier = Modifier
@@ -370,6 +597,9 @@ fun RoutePlanningScreen(
                                             }
                                         }
                                         stopAddresses = newStopAddresses
+                                        
+                                        // Update map markers using the updateMarkers function
+                                        updateMarkersFunction?.invoke()
                                     }
                                 ) {
                                     Icon(
@@ -385,4 +615,4 @@ fun RoutePlanningScreen(
             }
         }
     }
-} 
+}

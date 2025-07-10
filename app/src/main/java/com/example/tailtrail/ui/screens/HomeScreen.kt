@@ -147,16 +147,16 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
                         Column(
                             modifier = Modifier.padding(16.dp)
                         ) {
-                            Text(
+            Text(
                                 text = "Welcome, ${currentUser?.name ?: "User"}!",
                                 fontSize = 24.sp,
-                                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Bold,
                                 color = Color(0xFF673AB7)
-                            )
+            )
                             
                             Spacer(modifier = Modifier.height(8.dp))
-                            
-                            Text(
+
+            Text(
                                 text = "Your walking adventures await",
                                 fontSize = 16.sp,
                                 color = Color.DarkGray
@@ -261,14 +261,14 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
                 item {
                     Button(
                         onClick = { navController.navigate("genre_selection") },
-                        modifier = Modifier
+                modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp),
-                        shape = RoundedCornerShape(28.dp),
-                        colors = ButtonDefaults.buttonColors(
+                    .height(56.dp),
+                shape = RoundedCornerShape(28.dp),
+                colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF673AB7)
-                        )
-                    ) {
+                )
+            ) {
                         Row(
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
@@ -279,9 +279,9 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
                                 tint = Color.White,
                                 modifier = Modifier.padding(end = 8.dp)
                             )
-                            Text(
+                Text(
                                 text = "Add Walk",
-                                fontSize = 18.sp,
+                    fontSize = 18.sp,
                                 color = Color.White
                             )
                         }

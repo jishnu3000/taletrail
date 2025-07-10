@@ -54,7 +54,7 @@ class WalkViewModel(private val walkRepository: WalkRepository) : ViewModel() {
         }
     }
     
-    fun addWalk(userId: Int, genre: String, route: List<RoutePoint>) {
+    fun addWalk(userId: Int, genre: String, route: List<RoutePoint>, stopDist: Int, userStopsCount: Int) {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
@@ -63,8 +63,8 @@ class WalkViewModel(private val walkRepository: WalkRepository) : ViewModel() {
             val request = AddWalkRequest(
                 userId = userId,
                 genre = genre,
-                stopDist = 100, // Default value for now
-                noOfStops = route.size,
+                stopDist = stopDist,
+                noOfStops = userStopsCount, // Only count user-selected stops, not current location
                 route = route
             )
             

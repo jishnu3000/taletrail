@@ -5,6 +5,8 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -578,11 +580,23 @@ fun RoutePointCard(
     // Text-to-speech state
     var textToSpeech by remember { mutableStateOf<TextToSpeech?>(null) }
     var isSpeaking by remember { mutableStateOf(false) }
+    var availableVoices by remember { mutableStateOf<List<android.speech.tts.Voice>>(emptyList()) }
+    var selectedVoice by remember { mutableStateOf<android.speech.tts.Voice?>(null) }
+    var showVoicePicker by remember { mutableStateOf(false) }
     
     // Initialize text-to-speech
     LaunchedEffect(Unit) {
         textToSpeech = TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
+                // Get available voices
+                val voices = textToSpeech?.voices?.filter { voice ->
+                    voice.isNetworkConnectionRequired == false && voice.quality >= android.speech.tts.Voice.QUALITY_NORMAL
+                } ?: emptyList()
+                availableVoices = voices
+                
+                // Set default voice (first available or system default)
+                selectedVoice = voices.firstOrNull() ?: textToSpeech?.defaultVoice
+                
                 textToSpeech?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                     override fun onStart(utteranceId: String?) {
                         isSpeaking = true
@@ -622,6 +636,25 @@ fun RoutePointCard(
         }
     }
     
+    // Function to open Google Maps with directions to this stop
+    fun openGoogleMapsDirections(latitude: Double, longitude: Double) {
+        try {
+            val gmmIntentUri = Uri.parse("geo:$latitude,$longitude?q=$latitude,$longitude")
+            val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+            mapIntent.setPackage("com.google.android.apps.maps")
+            
+            if (mapIntent.resolveActivity(context.packageManager) != null) {
+                context.startActivity(mapIntent)
+            } else {
+                // Fallback to any map app
+                val fallbackIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+                context.startActivity(fallbackIntent)
+            }
+        } catch (e: Exception) {
+            println("Error opening Google Maps: ${e.message}")
+        }
+    }
+    
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -657,12 +690,18 @@ fun RoutePointCard(
                     )
                 }
                 
-                Text(
-                    text = if (route.lockStatus == 1) "UNLOCKED" else "LOCKED",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (route.lockStatus == 1) Color(0xFF4CAF50) else Color(0xFFF44336)
-                )
+                // Navigation button to open Google Maps
+                IconButton(
+                    onClick = { openGoogleMapsDirections(route.latitude, route.longitude) },
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Navigation,
+                        contentDescription = "Navigate to this stop",
+                        tint = Color(0xFF2196F3),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
             
             Spacer(modifier = Modifier.height(8.dp))

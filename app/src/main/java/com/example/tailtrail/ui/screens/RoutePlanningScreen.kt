@@ -185,17 +185,12 @@ fun RoutePlanningScreen(
                     FloatingActionButton(
                         onClick = {
                             val route = mutableListOf<RoutePoint>()
-                            // Add current location as starting point (order 1)
-                            currentLocation?.let { location ->
-                                route.add(RoutePoint(1, location.latitude, location.longitude))
-                            }
-                            // Add user-selected stops (orders 2, 3, 4, etc.)
+                            // Only add user-selected stops (orders 1, 2, 3, etc.)
                             stops.forEachIndexed { index, stop ->
-                                route.add(stop.copy(order = index + 2))
+                                route.add(stop.copy(order = index + 1))
                             }
                             if (route.isNotEmpty()) {
-                                // Send route with current location as start + user stops
-                                // Pass only the user-selected stops count (excluding current location)
+                                // Send route with only user-selected stops
                                 walkViewModel.addWalk(userId, genre, route, stopDist.toIntOrNull() ?: 100, stops.size)
                                 navController.navigate("home") {
                                     popUpTo("home") { inclusive = true }

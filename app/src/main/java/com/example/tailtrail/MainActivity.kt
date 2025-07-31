@@ -20,6 +20,7 @@ import com.example.tailtrail.ui.viewmodel.AuthViewModel
 import com.example.tailtrail.ui.viewmodel.WalkViewModel
 import com.example.tailtrail.data.api.RetrofitClient
 import com.example.tailtrail.data.repository.WalkRepository
+import com.example.tailtrail.ui.screens.WalkDetailsScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,6 +89,15 @@ fun TailTrailApp() {
                 navController = navController,
                 genre = genre,
                 walkViewModel = walkViewModel,
+                userId = authViewModel.currentUser?.userId ?: 0
+            )
+        }
+        composable("walk_details/{walkId}") { backStackEntry ->
+            val walkId = backStackEntry.arguments?.getString("walkId")?.toIntOrNull() ?: 0
+            WalkDetailsScreen(
+                navController = navController,
+                walkViewModel = walkViewModel,
+                walkId = walkId,
                 userId = authViewModel.currentUser?.userId ?: 0
             )
         }

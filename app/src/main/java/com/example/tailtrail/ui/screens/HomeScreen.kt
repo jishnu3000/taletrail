@@ -23,6 +23,7 @@ import com.example.tailtrail.data.util.Utils
 import com.example.tailtrail.ui.viewmodel.AuthViewModel
 import com.example.tailtrail.ui.viewmodel.WalkViewModel
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.clickable
 
 /**
  * Home screen that users see after logging in or signing up
@@ -216,7 +217,10 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(bottom = 8.dp),
+                                .padding(bottom = 8.dp)
+                                .clickable {
+                                    navController.navigate("walk_details/${walk.walkId}")
+                                },
                             colors = CardDefaults.cardColors(containerColor = Color.White),
                             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                         ) {
@@ -241,11 +245,22 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
                                     )
                                 }
                                 
-                                Icon(
-                                    Icons.Default.DirectionsWalk,
-                                    contentDescription = "Walk",
-                                    tint = Color(0xFF9C27B0)
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        Icons.Default.DirectionsWalk,
+                                        contentDescription = "Walk",
+                                        tint = Color(0xFF9C27B0)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Icon(
+                                        Icons.Default.ArrowForward,
+                                        contentDescription = "View Details",
+                                        tint = Color(0xFF9C27B0),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
                             }
                         }
                     }

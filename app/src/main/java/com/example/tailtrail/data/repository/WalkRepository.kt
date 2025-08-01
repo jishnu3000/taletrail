@@ -5,6 +5,8 @@ import com.example.tailtrail.data.model.AddWalkRequest
 import com.example.tailtrail.data.model.Walk
 import com.example.tailtrail.data.model.WalkDetails
 import com.example.tailtrail.data.model.CheckInResponse
+import com.example.tailtrail.data.model.DashboardStats
+import com.example.tailtrail.data.model.DashboardErrorResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -87,6 +89,50 @@ class WalkRepository(private val walkApi: WalkApi) {
         } catch (e: Exception) {
             println("Check-in exception in repository: ${e.message}")
             e.printStackTrace()
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getDashboardStats(userId: Int): Result<DashboardStats> = withContext(Dispatchers.IO) {
+        try {
+            println("Fetching dashboard stats for userId: $userId")
+            
+            val response = walkApi.getDashboardStats(userId)
+            println("Dashboard stats response code: ${response.code()}")
+            println("Dashboard stats response body: ${response.body()}")
+            
+            if (response.isSuccessful) {
+                val responseBody = response.body()
+                if (responseBody != null) {
+                    Result.success(responseBody)
+                } else {
+                    Result.failure(Exception("Empty response body"))
+                }
+            } else {
+                val errorMessage = when (response.code()) {
+                    400 -> {
+                        // Try to parse error response
+                        val errorBody = response.errorBody()?.string()
+                        if (errorBody != null) {
+                            try {
+                                val gson = com.google.gson.Gson()
+                                val errorResponse = gson.fromJson(errorBody, DashboardErrorResponse::class.java)
+                                errorResponse.errorDescription
+                            } catch (e: Exception) {
+                                "Invalid data provided"
+                            }
+                        } else {
+                            "Invalid data provided"
+                        }
+                    }
+                    404 -> "User not found"
+                    500 -> "Server error occurred"
+                    else -> "Failed to fetch dashboard stats: ${response.message()}"
+                }
+                Result.failure(Exception(errorMessage))
+            }
+        } catch (e: Exception) {
+            println("Dashboard stats exception: ${e.message}")
             Result.failure(e)
         }
     }

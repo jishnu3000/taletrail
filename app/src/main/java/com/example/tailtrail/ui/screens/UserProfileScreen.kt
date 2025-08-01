@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
@@ -112,6 +113,22 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
                     label = { Text("Profile") },
                     selected = true,
                     onClick = { navController.navigate("profile") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = Color(0xFF673AB7),
+                        selectedTextColor = Color(0xFF673AB7),
+                        indicatorColor = Color(0xFF673AB7).copy(alpha = 0.1f)
+                    )
+                )
+                NavigationBarItem(
+                    icon = {
+                        Icon(
+                            Icons.Default.Dashboard,
+                            contentDescription = "Dashboard"
+                        )
+                    },
+                    label = { Text("Dashboard") },
+                    selected = false,
+                    onClick = { navController.navigate("dashboard") },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color(0xFF673AB7),
                         selectedTextColor = Color(0xFF673AB7),

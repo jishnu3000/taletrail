@@ -109,6 +109,9 @@ dependencies {
     implementation("com.google.android.gms:play-services-maps:18.2.0")
     implementation("com.google.android.gms:play-services-location:21.1.0")
     
+    // OpenStreetMap
+    implementation("org.osmdroid:osmdroid-android:6.1.17")
+    
     // Debug
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)

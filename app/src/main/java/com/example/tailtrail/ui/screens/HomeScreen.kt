@@ -107,6 +107,25 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
                     ),
                     enabled = !isQuizRequired
                 )
+                NavigationBarItem(
+                    icon = {
+                        Icon(
+                            Icons.Default.Dashboard,
+                            contentDescription = "Dashboard"
+                        )
+                    },
+                    label = { Text("Dashboard") },
+                    selected = false,
+                    onClick = {
+                        if (!isQuizRequired) navController.navigate("dashboard")
+                    },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = Color(0xFF673AB7),
+                        selectedTextColor = Color(0xFF673AB7),
+                        indicatorColor = Color(0xFF673AB7).copy(alpha = 0.1f)
+                    ),
+                    enabled = !isQuizRequired
+                )
             }
         }
     ) { innerPadding ->

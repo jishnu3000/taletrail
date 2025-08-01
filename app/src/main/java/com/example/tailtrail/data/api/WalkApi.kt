@@ -5,6 +5,7 @@ import com.example.tailtrail.data.model.AddWalkResponse
 import com.example.tailtrail.data.model.Walk
 import com.example.tailtrail.data.model.WalkDetails
 import com.example.tailtrail.data.model.CheckInResponse
+import com.example.tailtrail.data.model.DashboardStats
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -27,4 +28,7 @@ interface WalkApi {
         @Query("userLng") userLng: Double,
         @Query("routeId") routeId: Int
     ): Response<CheckInResponse>
+    
+    @GET("walks/stats")
+    suspend fun getDashboardStats(@Query("userId") userId: Int): Response<DashboardStats>
 } 

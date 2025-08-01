@@ -18,6 +18,7 @@ import com.example.tailtrail.ui.screens.*
 import com.example.tailtrail.ui.theme.TailTrailTheme
 import com.example.tailtrail.ui.viewmodel.AuthViewModel
 import com.example.tailtrail.ui.viewmodel.WalkViewModel
+import com.example.tailtrail.viewmodel.DashboardViewModel
 import com.example.tailtrail.data.api.RetrofitClient
 import com.example.tailtrail.data.repository.WalkRepository
 import com.example.tailtrail.ui.screens.WalkDetailsScreen
@@ -43,6 +44,13 @@ fun TailTrailApp() {
     // Initialize WalkViewModel
     val walkRepository = WalkRepository(RetrofitClient.walkApi)
     val walkViewModel: WalkViewModel = viewModel(factory = WalkViewModel.provideFactory(walkRepository))
+    
+    // Initialize DashboardViewModel
+    val dashboardViewModel: DashboardViewModel = viewModel(factory = object : ViewModelProvider.Factory {
+        override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+            return DashboardViewModel(walkRepository) as T
+        }
+    })
 
     // Check if user needs to take quiz and navigate accordingly
     LaunchedEffect(authViewModel.currentUser) {
@@ -99,6 +107,14 @@ fun TailTrailApp() {
                 walkViewModel = walkViewModel,
                 walkId = walkId,
                 userId = authViewModel.currentUser?.userId ?: 0
+            )
+        }
+        composable("dashboard") {
+            DashboardScreen(
+                dashboardViewModel = dashboardViewModel,
+                userId = authViewModel.currentUser?.userId ?: 0,
+                onNavigateToProfile = { navController.navigate("profile") },
+                onNavigateToHome = { navController.navigate("home") }
             )
         }
     }

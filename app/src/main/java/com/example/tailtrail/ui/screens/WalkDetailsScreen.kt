@@ -291,17 +291,19 @@ fun WalkDetailsScreen(
                     }
                 }
                 walkDetails != null -> {
+                    // Capture walkDetails locally to prevent null reference during recomposition
+                    val currentWalkDetails = walkDetails!!
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(16.dp)
                     ) {
                         item {
-                            WalkInfoCard(walkDetails!!)
+                            WalkInfoCard(currentWalkDetails)
                         }
                         
                         item {
                             Spacer(modifier = Modifier.height(16.dp))
-                            WalkProgressCard(walkDetails!!)
+                            WalkProgressCard(currentWalkDetails)
                         }
                         
                         item {
@@ -320,14 +322,15 @@ fun WalkDetailsScreen(
                             Spacer(modifier = Modifier.height(8.dp))
                         }
                         
-                        items(walkDetails!!.routes) { route ->
+                        // Now currentWalkDetails is non-null
+                        items(currentWalkDetails.routes) { route ->
                             RoutePointCard(
                                 route = route,
                                 isCheckingIn = isCheckingIn == route.routeId,
-                                                                    onCheckIn = onCheckIn,
-                                    currentLocation = currentLocation,
-                                    hasLocationPermission = hasLocationPermission,
-                                    walkViewModel = walkViewModel
+                                onCheckIn = onCheckIn,
+                                currentLocation = currentLocation,
+                                hasLocationPermission = hasLocationPermission,
+                                walkViewModel = walkViewModel
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                         }

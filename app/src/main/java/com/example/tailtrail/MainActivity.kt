@@ -44,16 +44,8 @@ fun TailTrailApp() {
     val walkRepository = WalkRepository(RetrofitClient.walkApi)
     val walkViewModel: WalkViewModel = viewModel(factory = WalkViewModel.provideFactory(walkRepository))
 
-    // Check if user needs to take quiz and navigate accordingly
-    LaunchedEffect(authViewModel.currentUser) {
-        authViewModel.currentUser?.let { user ->
-            if (user.isQuiz == 0) {
-                navController.navigate("quiz") {
-                    popUpTo("home") { inclusive = true }
-                }
-            }
-        }
-    }
+    // Note: Quiz validation is now handled directly in LoginScreen and SignUpScreen
+    // This ensures users are redirected to quiz immediately after login/signup if needed
 
     NavHost(
         navController = navController,

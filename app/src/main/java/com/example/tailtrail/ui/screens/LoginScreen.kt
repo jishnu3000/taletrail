@@ -49,9 +49,17 @@ fun LoginScreen(navController: NavHostController, authViewModel: AuthViewModel) 
             }
             is AuthState.Success -> {
                 isLoading = false
-                // Navigate to home screen on successful login
-                navController.navigate("home") {
-                    popUpTo("welcome") { inclusive = true }
+                // Check if user needs to take quiz
+                if (authViewModel.needsQuiz()) {
+                    // Navigate to quiz screen if user hasn't taken quiz
+                    navController.navigate("quiz") {
+                        popUpTo("welcome") { inclusive = true }
+                    }
+                } else {
+                    // Navigate to home screen if user has already taken quiz
+                    navController.navigate("home") {
+                        popUpTo("welcome") { inclusive = true }
+                    }
                 }
             }
             is AuthState.Error -> {
@@ -260,10 +268,17 @@ fun LoginScreen(navController: NavHostController, authViewModel: AuthViewModel) 
                     Button(
                         onClick = {
                             // Test navigation to home screen
-                            navController.navigate("home") {
-                                popUpTo("welcome") { inclusive = true }
+                            if (authViewModel.needsQuiz()) {
+                                navController.navigate("quiz") {
+                                    popUpTo("welcome") { inclusive = true }
+                                }
+                                Utils.showSnackbar(snackbarHostState, scope, "Navigation test - going to quiz screen")
+                            } else {
+                                navController.navigate("home") {
+                                    popUpTo("welcome") { inclusive = true }
+                                }
+                                Utils.showSnackbar(snackbarHostState, scope, "Navigation test - going to home screen")
                             }
-                            Utils.showSnackbar(snackbarHostState, scope, "Navigation test - going to home screen")
                         },
                         modifier = Modifier
                             .fillMaxWidth()

@@ -67,8 +67,6 @@ fun RoutePlanningScreen(
     var currentLocationAddress by remember { mutableStateOf<String>("") }
     var stopDist by remember { mutableStateOf("100") }
     var showInstructions by remember { mutableStateOf(false) }
-    var isGpsEnabled by remember { mutableStateOf(false) }
-    var locationStatus by remember { mutableStateOf("Checking location...") }
     
 
     
@@ -102,90 +100,36 @@ fun RoutePlanningScreen(
     }
     
     LaunchedEffect(hasLocationPermission) {
-        // Check if GPS is enabled
-        isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
-                      locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
-        
-        if (!isGpsEnabled) {
-            locationStatus = "GPS is disabled. Please enable location services."
-            println("RoutePlanningScreen: GPS is disabled")
-        } else {
-            locationStatus = "GPS is enabled"
-            println("RoutePlanningScreen: GPS is enabled")
-        }
-        
         if (hasLocationPermission) {
             try {
-                println("RoutePlanningScreen: Requesting last location...")
                 fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
-                    if (location != null) {
-                        println("RoutePlanningScreen: Got location - lat: ${location.latitude}, lng: ${location.longitude}")
-                        currentLocation = LatLng(location.latitude, location.longitude)
+                    location?.let {
+                        currentLocation = LatLng(it.latitude, it.longitude)
                         // Get address for current location
                         scope.launch {
                             currentLocationAddress = GeocodingUtil.getAddressFromCoordinates(
-                                context, location.latitude, location.longitude
+                                context, it.latitude, it.longitude
                             )
-                            println("RoutePlanningScreen: Current location address: $currentLocationAddress")
                         }
                         
                         // Zoom to current location when it becomes available
                         googleMapObj?.let { map ->
-                            println("RoutePlanningScreen: Moving camera to current location")
                             map.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation!!, 17f))
                             
                             // Force enable my-location when we have a location
                             if (hasLocationPermission) {
                                 try {
                                     map.isMyLocationEnabled = true
-                                    println("RoutePlanningScreen: My location enabled successfully")
                                 } catch (e: SecurityException) {
-                                    println("RoutePlanningScreen: SecurityException enabling my location: ${e.message}")
+                                    // Handle permission denied
                                 }
                             }
                         }
-                    } else {
-                        println("RoutePlanningScreen: Location is null - GPS might be disabled or no recent location")
-                        // Try to get location updates if last location is null
-                        try {
-                            fusedLocationClient.requestLocationUpdates(
-                                com.google.android.gms.location.LocationRequest.Builder(1000).build(),
-                                object : com.google.android.gms.location.LocationCallback() {
-                                    override fun onLocationResult(locationResult: com.google.android.gms.location.LocationResult) {
-                                        locationResult.lastLocation?.let { location ->
-                                            println("RoutePlanningScreen: Got location from updates - lat: ${location.latitude}, lng: ${location.longitude}")
-                                            currentLocation = LatLng(location.latitude, location.longitude)
-                                            scope.launch {
-                                                currentLocationAddress = GeocodingUtil.getAddressFromCoordinates(
-                                                    context, location.latitude, location.longitude
-                                                )
-                                            }
-                                            googleMapObj?.let { map ->
-                                                map.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation!!, 17f))
-                                                try {
-                                                    map.isMyLocationEnabled = true
-                                                } catch (e: SecurityException) {
-                                                    println("RoutePlanningScreen: SecurityException in location updates: ${e.message}")
-                                                }
-                                            }
-                                            fusedLocationClient.removeLocationUpdates(this)
-                                        }
-                                    }
-                                },
-                                null
-                            )
-                        } catch (e: SecurityException) {
-                            println("RoutePlanningScreen: SecurityException requesting location updates: ${e.message}")
-                        }
                     }
-                }.addOnFailureListener { exception ->
-                    println("RoutePlanningScreen: Failed to get location: ${exception.message}")
                 }
             } catch (e: SecurityException) {
-                println("RoutePlanningScreen: SecurityException in location setup: ${e.message}")
+                // Handle permission denied
             }
-        } else {
-            println("RoutePlanningScreen: No location permission granted")
         }
     }
     
@@ -509,103 +453,7 @@ fun RoutePlanningScreen(
                     }
                 }
                 
-                // Location Status Card
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (currentLocation != null) Color(0xFFE8F5E8) else Color(0xFFFFF3E0)
-                        ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = if (currentLocation != null) Icons.Default.LocationOn else Icons.Default.LocationOff,
-                                    contentDescription = "Location Status",
-                                    tint = if (currentLocation != null) Color.Green else Color(0xFFFF9800),
-                                    modifier = Modifier.size(24.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = if (currentLocation != null) "Location Found" else "Location Status",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = if (currentLocation != null) Color.Green else Color(0xFFFF9800)
-                                )
-                            }
-                            
-                            Spacer(modifier = Modifier.height(8.dp))
-                            
-                            if (currentLocation != null) {
-                                currentLocation?.let { location ->
-                                    Text(
-                                        text = "Current Location: ${if (currentLocationAddress.isNotEmpty()) currentLocationAddress else "${location.latitude}, ${location.longitude}"}",
-                                        fontSize = 14.sp,
-                                        color = Color.DarkGray
-                                    )
-                                }
-                            } else {
-                                Text(
-                                    text = locationStatus,
-                                    fontSize = 14.sp,
-                                    color = Color.DarkGray
-                                )
-                                
-                                if (!isGpsEnabled) {
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Button(
-                                        onClick = {
-                                            // Open location settings
-                                            val intent = android.content.Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                                            context.startActivity(intent)
-                                        },
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))
-                                    ) {
-                                        Text("Enable Location Services")
-                                    }
-                                }
-                                
-                                if (!hasLocationPermission) {
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Button(
-                                        onClick = {
-                                            locationPermissionLauncher.launch(
-                                                arrayOf(
-                                                    Manifest.permission.ACCESS_FINE_LOCATION,
-                                                    Manifest.permission.ACCESS_COARSE_LOCATION
-                                                )
-                                            )
-                                        },
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
-                                    ) {
-                                        Text("Grant Location Permission")
-                                    }
-                                }
-                            }
-                            
-                            Spacer(modifier = Modifier.height(8.dp))
-                            
-                            Text(
-                                text = "Permission: ${if (hasLocationPermission) "✓ Granted" else "✗ Denied"}",
-                                fontSize = 12.sp,
-                                color = if (hasLocationPermission) Color.Green else Color.Red
-                            )
-                            
-                            Text(
-                                text = "GPS: ${if (isGpsEnabled) "✓ Enabled" else "✗ Disabled"}",
-                                fontSize = 12.sp,
-                                color = if (isGpsEnabled) Color.Green else Color.Red
-                            )
-                        }
-                    }
-                }
-                
-                // Route Settings Card
+                // Stop Distance Input
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -636,11 +484,32 @@ fun RoutePlanningScreen(
                             
                             Spacer(modifier = Modifier.height(8.dp))
                             
+                            currentLocation?.let { location ->
+                                Text(
+                                    text = "Current Location: ${if (currentLocationAddress.isNotEmpty()) currentLocationAddress else "${location.latitude}, ${location.longitude}"}",
+                                    fontSize = 14.sp,
+                                    color = Color.DarkGray
+                                )
+                            }
+                            
                             Text(
                                 text = "Selected Stops: ${stops.size}",
                                 fontSize = 14.sp,
                                 color = Color.DarkGray
                             )
+                            
+                            Text(
+                                text = "Location Permission: ${if (hasLocationPermission) "Granted" else "Denied"}",
+                                fontSize = 12.sp,
+                                color = if (hasLocationPermission) Color.Green else Color.Red
+                            )
+                            
+                            Text(
+                                text = "GPS Enabled: ${if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) "Yes" else "No"}",
+                                fontSize = 12.sp,
+                                color = if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) Color.Green else Color.Red
+                            )
+                            // Removed manual 'Enable My Location' button
                         }
                     }
                 }

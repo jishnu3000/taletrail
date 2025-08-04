@@ -222,17 +222,9 @@ fun SignUpScreen(navController: NavHostController, authViewModel: AuthViewModel)
                     // Perform sign up action
                     authViewModel.signUp(name, phone, email, password, confirmPassword) { success, message ->
                         if (success) {
-                            // Check if user needs to take quiz
-                            if (authViewModel.needsQuiz()) {
-                                // Navigate to quiz screen if user hasn't taken quiz
-                                navController.navigate("quiz") {
-                                    popUpTo("welcome") { inclusive = true }
-                                }
-                            } else {
-                                // Navigate to home screen if user has already taken quiz
-                                navController.navigate("home") {
-                                    popUpTo("welcome") { inclusive = true }
-                                }
+                            // Navigate to home screen on successful sign up
+                            navController.navigate("home") {
+                                popUpTo("welcome") { inclusive = true }
                             }
                         } else {
                             // Show error message using Snackbar

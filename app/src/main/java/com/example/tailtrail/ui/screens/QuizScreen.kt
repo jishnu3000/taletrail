@@ -125,7 +125,7 @@ fun QuizScreen(navController: NavHostController, authViewModel: AuthViewModel? =
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(top = 48.dp, start = 16.dp, end = 16.dp, bottom = 16.dp), // Move content down for notch
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(

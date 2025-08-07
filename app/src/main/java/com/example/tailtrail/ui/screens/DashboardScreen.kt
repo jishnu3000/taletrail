@@ -1,5 +1,6 @@
 package com.example.tailtrail.ui.screens
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,8 +19,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -242,8 +246,10 @@ fun StatisticsSection(
             )
             
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
             ) {
                 StatCard(
                     icon = Icons.Default.TrendingUp,
@@ -258,6 +264,13 @@ fun StatisticsSection(
                     value = "${stats.completedWalks}",
                     color = Color(0xFF2196F3)
                 )
+                
+                StatCard(
+                    icon = Icons.Default.DirectionsWalk,
+                    title = "Walks In Progress",
+                    value = "${stats.incompleteWalks}",
+                    color = Color(0xFFFF9800)
+                )
             }
         }
     }
@@ -271,14 +284,14 @@ fun StatCard(
     color: Color
 ) {
     Card(
-        modifier = Modifier.size(120.dp),
+        modifier = Modifier.width(85.dp).height(95.dp),
         colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.1f)),
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(12.dp),
+                .padding(6.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -286,20 +299,21 @@ fun StatCard(
                 imageVector = icon,
                 contentDescription = null,
                 tint = color,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(24.dp)
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = value,
-                fontSize = 16.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 color = color
             )
             Text(
                 text = title,
-                fontSize = 10.sp,
+                fontSize = 8.sp,
                 color = Color.Gray,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                maxLines = 2
             )
         }
     }
@@ -321,27 +335,16 @@ fun ProgressSection(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Progress Overview",
+                text = "Places Progress",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF673AB7)
             )
             
-            // Walks Progress
-            ProgressItem(
-                title = "Walks Progress",
-                completed = stats.completedWalks,
-                total = stats.completedWalks + stats.incompleteWalks,
-                color = Color(0xFF4CAF50),
-                dashboardViewModel = dashboardViewModel
-            )
-            
-            // Places Progress
-            ProgressItem(
-                title = "Places Visited",
-                completed = stats.placesVisited,
-                total = stats.placesVisited + stats.placesNotVisited,
-                color = Color(0xFF2196F3),
+            // Places Progress Pie Chart
+            PlacesPieChart(
+                visited = stats.placesVisited,
+                notVisited = stats.placesNotVisited,
                 dashboardViewModel = dashboardViewModel
             )
         }
@@ -349,43 +352,126 @@ fun ProgressSection(
 }
 
 @Composable
-fun ProgressItem(
-    title: String,
-    completed: Int,
-    total: Int,
-    color: Color,
+fun PlacesPieChart(
+    visited: Int,
+    notVisited: Int,
     dashboardViewModel: DashboardViewModel
 ) {
-    val progress = dashboardViewModel.getProgressPercentage(completed, total)
+    val total = visited + notVisited
+    val visitedAngle = if (total > 0) (visited.toFloat() / total) * 360f else 0f
+    val notVisitedAngle = if (total > 0) (notVisited.toFloat() / total) * 360f else 0f
     
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Pie Chart
+        Canvas(
+            modifier = Modifier.size(120.dp)
         ) {
-            Text(
-                text = title,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.Black
-            )
-            Text(
-                text = "$completed/$total",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = color
+            val radius = size.minDimension / 2f
+            val center = Offset(size.width / 2f, size.height / 2f)
+            
+            // Draw visited places arc
+            if (visitedAngle > 0) {
+                drawArc(
+                    color = Color(0xFF4CAF50),
+                    startAngle = -90f,
+                    sweepAngle = visitedAngle,
+                    useCenter = true,
+                    topLeft = Offset(center.x - radius, center.y - radius),
+                    size = Size(radius * 2, radius * 2)
+                )
+            }
+            
+            // Draw not visited places arc
+            if (notVisitedAngle > 0) {
+                drawArc(
+                    color = Color(0xFFF44336),
+                    startAngle = -90f + visitedAngle,
+                    sweepAngle = notVisitedAngle,
+                    useCenter = true,
+                    topLeft = Offset(center.x - radius, center.y - radius),
+                    size = Size(radius * 2, radius * 2)
+                )
+            }
+            
+            // Draw center circle for donut effect
+            drawCircle(
+                color = Color.White,
+                radius = radius * 0.5f,
+                center = center
             )
         }
         
-        LinearProgressIndicator(
-            progress = progress,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp)
-                .clip(RoundedCornerShape(4.dp)),
-            color = color,
-            trackColor = color.copy(alpha = 0.2f)
-        )
+        // Legend
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .background(
+                            Color(0xFF4CAF50),
+                            shape = RoundedCornerShape(4.dp)
+                        )
+                )
+                Column {
+                    Text(
+                        text = "Visited",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Black
+                    )
+                    Text(
+                        text = "$visited places",
+                        fontSize = 10.sp,
+                        color = Color.Gray
+                    )
+                }
+            }
+            
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .background(
+                            Color(0xFFF44336),
+                            shape = RoundedCornerShape(4.dp)
+                        )
+                )
+                Column {
+                    Text(
+                        text = "Not Visited",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Black
+                    )
+                    Text(
+                        text = "$notVisited places",
+                        fontSize = 10.sp,
+                        color = Color.Gray
+                    )
+                }
+            }
+            
+            // Total percentage
+            Text(
+                text = "${dashboardViewModel.getProgressPercentage(visited, total).times(100).toInt()}% Complete",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF673AB7),
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
     }
 }
 

@@ -10,6 +10,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -583,6 +584,7 @@ fun RoutePointCard(
     // Text-to-speech state
     var textToSpeech by remember { mutableStateOf<TextToSpeech?>(null) }
     var isSpeaking by remember { mutableStateOf(false) }
+    var isPaused by remember { mutableStateOf(false) }
     var availableVoices by remember { mutableStateOf<List<android.speech.tts.Voice>>(emptyList()) }
     var selectedVoice by remember { mutableStateOf<android.speech.tts.Voice?>(null) }
     var showVoicePicker by remember { mutableStateOf(false) }
@@ -603,14 +605,17 @@ fun RoutePointCard(
                 textToSpeech?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                     override fun onStart(utteranceId: String?) {
                         isSpeaking = true
+                        isPaused = false
                     }
                     
                     override fun onDone(utteranceId: String?) {
                         isSpeaking = false
+                        isPaused = false
                     }
                     
                     override fun onError(utteranceId: String?) {
                         isSpeaking = false
+                        isPaused = false
                     }
                 })
             }
@@ -805,31 +810,83 @@ fun RoutePointCard(
                         Text(if (showStory) "Hide Story" else "View Story")
                     }
                     
-                    // Listen Button
-                    Button(
-                        onClick = { 
-                            route.storySegment?.let { story ->
-                                textToSpeech?.speak(
-                                    story,
-                                    TextToSpeech.QUEUE_FLUSH,
-                                    null,
-                                    "story_${route.routeId}"
-                                )
-                            }
-                        },
-                        enabled = !isSpeaking && textToSpeech != null,
+                    // Audio Control Buttons
+                    Row(
                         modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isSpeaking) Color(0xFF9E9E9E) else Color(0xFF2196F3)
-                        )
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Icon(
-                            if (isSpeaking) Icons.Default.Stop else Icons.Default.VolumeUp,
-                            contentDescription = if (isSpeaking) "Stop" else "Listen",
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(if (isSpeaking) "Stop" else "Listen")
+                        // Play/Pause Button
+                        Button(
+                            onClick = { 
+                                if (isSpeaking && !isPaused) {
+                                    // Pause the audio
+                                    textToSpeech?.stop()
+                                    isPaused = true
+                                } else {
+                                    // Play the audio (either start or resume)
+                                    route.storySegment?.let { story ->
+                                        textToSpeech?.let { tts ->
+                                            // Set the selected voice
+                                            selectedVoice?.let { voice ->
+                                                tts.voice = voice
+                                            }
+                                            
+                                            tts.speak(
+                                                story,
+                                                TextToSpeech.QUEUE_FLUSH,
+                                                null,
+                                                "story_${route.routeId}"
+                                            )
+                                        }
+                                    }
+                                }
+                            },
+                            enabled = textToSpeech != null,
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isSpeaking && !isPaused) Color(0xFFFF9800) else Color(0xFF2196F3)
+                            )
+                        ) {
+                            Icon(
+                                when {
+                                    isSpeaking && !isPaused -> Icons.Default.Pause
+                                    isPaused -> Icons.Default.PlayArrow
+                                    else -> Icons.Default.VolumeUp
+                                },
+                                contentDescription = when {
+                                    isSpeaking && !isPaused -> "Pause"
+                                    isPaused -> "Play"
+                                    else -> "Listen"
+                                },
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                when {
+                                    isSpeaking && !isPaused -> "Pause"
+                                    isPaused -> "Play"
+                                    else -> "Listen"
+                                },
+                                fontSize = 12.sp
+                            )
+                        }
+                        
+
+                    }
+                    
+                    // Voice Selection Button
+                    if (availableVoices.isNotEmpty()) {
+                        IconButton(
+                            onClick = { showVoicePicker = true },
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = "Change voice",
+                                tint = Color(0xFF9E9E9E),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -865,6 +922,68 @@ fun RoutePointCard(
                         )
                     }
                 }
+            }
+            
+            // Voice Picker Dialog
+            if (showVoicePicker) {
+                AlertDialog(
+                    onDismissRequest = { showVoicePicker = false },
+                    title = {
+                        Text(
+                            text = "Select Voice",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
+                    text = {
+                        LazyColumn(
+                            modifier = Modifier.heightIn(max = 300.dp)
+                        ) {
+                            items(availableVoices) { voice ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { 
+                                            selectedVoice = voice
+                                            showVoicePicker = false
+                                        }
+                                        .padding(vertical = 8.dp, horizontal = 16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    RadioButton(
+                                        selected = selectedVoice?.name == voice.name,
+                                        onClick = { 
+                                            selectedVoice = voice
+                                            showVoicePicker = false
+                                        }
+                                    )
+                                    
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    
+                                    Column {
+                                        Text(
+                                            text = voice.name ?: "Unknown Voice",
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                        Text(
+                                            text = "${voice.locale?.displayLanguage ?: "Unknown"} - ${voice.locale?.displayCountry ?: ""}",
+                                            fontSize = 12.sp,
+                                            color = Color.Gray
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = { showVoicePicker = false }
+                        ) {
+                            Text("Cancel")
+                        }
+                    }
+                )
             }
         }
     }

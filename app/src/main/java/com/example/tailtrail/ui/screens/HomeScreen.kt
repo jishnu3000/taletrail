@@ -1,5 +1,6 @@
 package com.example.tailtrail.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,18 +13,68 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.tailtrail.R
 import com.example.tailtrail.data.model.Walk
 import com.example.tailtrail.data.util.Utils
 import com.example.tailtrail.ui.viewmodel.AuthViewModel
 import com.example.tailtrail.ui.viewmodel.WalkViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.clickable
+
+/**
+ * Get genre-specific background color
+ */
+fun getGenreBackgroundColor(genre: String): Color {
+    return when (genre.lowercase()) {
+        "adventure" -> Color(0xFFc2c2c4)
+        "horror" -> Color(0xFFcabfb5)
+        "mystery" -> Color(0xFF968d82)
+        "fantasy" -> Color(0xFF5c70ad)
+        "romance" -> Color(0xFFbf7a86)
+        "sci-fi" -> Color(0xFF5588a1)
+        "comedy" -> Color(0xFFddb89a)
+        "drama" -> Color(0xFF393c40)
+        else -> Color.White
+    }
+}
+
+/**
+ * Get genre-specific drawable resource
+ */
+fun getGenreDrawable(genre: String): Int {
+    return when (genre.lowercase()) {
+        "adventure" -> R.drawable.adventure
+        "horror" -> R.drawable.horror
+        "mystery" -> R.drawable.mystery
+        "fantasy" -> R.drawable.fantasy
+        "romance" -> R.drawable.romance
+        "sci-fi" -> R.drawable.sci_fi
+        "comedy" -> R.drawable.comedy
+        "drama" -> R.drawable.drama
+        else -> R.drawable.adventure // fallback
+    }
+}
+
+/**
+ * Format distance to show km if over 1000m
+ */
+fun formatDistance(distanceInMeters: Int): String {
+    return if (distanceInMeters >= 1000) {
+        val km = distanceInMeters / 1000.0
+        String.format("%.1fkm", km)
+    } else {
+        "${distanceInMeters}m"
+    }
+}
 
 /**
  * Home screen that users see after logging in or signing up
@@ -186,9 +237,9 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
                 }
                 
                 item {
-                    // Previous Walks Section
+                    // Walks in Progress Section
                     Text(
-                        text = "Previous Walks",
+                        text = "Walks in Progress",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF673AB7),
@@ -240,8 +291,9 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
                                 .clickable {
                                     navController.navigate("walk_details/${walk.walkId}")
                                 },
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                            colors = CardDefaults.cardColors(containerColor = getGenreBackgroundColor(walk.genre)),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                            shape = RoundedCornerShape(16.dp)
                         ) {
                             Row(
                                 modifier = Modifier
@@ -250,36 +302,48 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = walk.genre,
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = Color(0xFF673AB7)
-                                    )
-                                    Text(
-                                        text = "Stops: ${walk.noOfStops} • Distance: ${walk.stopDist}m",
-                                        fontSize = 14.sp,
-                                        color = Color.DarkGray
-                                    )
-                                }
-                                
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(
-                                        Icons.Default.DirectionsWalk,
-                                        contentDescription = "Walk",
-                                        tint = Color(0xFF9C27B0)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Icon(
-                                        Icons.Default.ArrowForward,
-                                        contentDescription = "View Details",
-                                        tint = Color(0xFF9C27B0),
-                                        modifier = Modifier.size(16.dp)
-                                    )
+                                    // Genre Logo
+                                    Box(
+                                        modifier = Modifier
+                                            .size(60.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Image(
+                                            painter = painterResource(id = getGenreDrawable(walk.genre)),
+                                            contentDescription = "${walk.genre} logo",
+                                            modifier = Modifier
+                                                .size(50.dp)
+                                                .clip(RoundedCornerShape(12.dp)),
+                                            contentScale = ContentScale.Fit
+                                        )
+                                    }
+                                    
+                                    Spacer(modifier = Modifier.width(16.dp))
+                                    
+                                    Column {
+                                        Text(
+                                            text = walk.genre,
+                                            fontSize = 18.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                        Text(
+                                            text = "Stops: ${walk.noOfStops} • Distance: ${formatDistance(walk.stopDist)}",
+                                            fontSize = 14.sp,
+                                            color = Color.White
+                                        )
+                                    }
                                 }
+                                
+                                Icon(
+                                    Icons.Default.ArrowForward,
+                                    contentDescription = "View Details",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(24.dp)
+                                )
                             }
                         }
                     }

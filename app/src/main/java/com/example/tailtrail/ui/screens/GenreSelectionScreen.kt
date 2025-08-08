@@ -1,5 +1,6 @@
 package com.example.tailtrail.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,25 +14,34 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.tailtrail.R
+
+data class Genre(
+    val name: String,
+    val imageRes: Int
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GenreSelectionScreen(navController: NavHostController) {
     val genres = listOf(
-        "Adventure",
-        "Mystery",
-        "Fantasy",
-        "Romance",
-        "Sci-Fi",
-        "Horror",
-        "Comedy",
-        "Drama"
+        Genre("Adventure", R.drawable.adventure),
+        Genre("Mystery", R.drawable.mystery),
+        Genre("Fantasy", R.drawable.fantasy),
+        Genre("Romance", R.drawable.romance),
+        Genre("Sci-Fi", R.drawable.sci_fi),
+        Genre("Horror", R.drawable.horror),
+        Genre("Comedy", R.drawable.comedy),
+        Genre("Drama", R.drawable.drama)
     )
     
     var selectedGenre by remember { mutableStateOf<String?>(null) }
@@ -88,26 +98,29 @@ fun GenreSelectionScreen(navController: NavHostController) {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(120.dp)
-                            .clickable { selectedGenre = genre },
+                            .height(140.dp)
+                            .clickable { selectedGenre = genre.name },
                         colors = CardDefaults.cardColors(
-                            containerColor = if (selectedGenre == genre) 
-                                Color(0xFF9C27B0) else Color.White
+                            containerColor = if (selectedGenre == genre.name) 
+                                Color(0xFF9C27B0) else Color.Transparent
                         ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(16.dp),
+                                .padding(12.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = genre,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = if (selectedGenre == genre) Color.White else Color(0xFF673AB7),
-                                textAlign = TextAlign.Center
+                            // Genre Logo - Bigger and more immersive
+                            Image(
+                                painter = painterResource(id = genre.imageRes),
+                                contentDescription = "${genre.name} logo",
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(12.dp)),
+                                contentScale = ContentScale.Crop
                             )
                         }
                     }

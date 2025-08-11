@@ -62,6 +62,7 @@ fun RoutePlanningScreen(
     var customMarkers by remember { mutableStateOf<MutableList<com.google.android.gms.maps.model.Marker>>(mutableListOf()) }
     var updateMarkersFunction by remember { mutableStateOf<(() -> Unit)?>(null) }
     var mapError by remember { mutableStateOf<String?>(null) }
+    var isFullScreenMap by remember { mutableStateOf(false) }
     
     // Address states
     var currentLocationAddress by remember { mutableStateOf<String>("") }
@@ -178,44 +179,21 @@ fun RoutePlanningScreen(
                 )
             )
         },
-        floatingActionButton = {
-            Column {
-                // Only show Save button if at least one stop is present
-                if (stops.isNotEmpty()) {
-                    FloatingActionButton(
-                        onClick = {
-                            val route = mutableListOf<RoutePoint>()
-                            // Only add user-selected stops (orders 1, 2, 3, etc.)
-                            stops.forEachIndexed { index, stop ->
-                                route.add(stop.copy(order = index + 1))
-                            }
-                            if (route.isNotEmpty()) {
-                                // Send route with only user-selected stops
-                                walkViewModel.addWalk(userId, genre, route, stopDist.toIntOrNull() ?: 100, stops.size)
-                                navController.navigate("home") {
-                                    popUpTo("home") { inclusive = true }
-                                }
-                            }
-                        },
-                        containerColor = Color(0xFF4CAF50)
-                    ) {
-                        Icon(Icons.Default.Check, "Save Route")
-                    }
-                }
-            }
-        }
+
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            // Map View
-            Box(
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Main Content
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp)
+                    .fillMaxSize()
+                    .padding(innerPadding)
             ) {
+                // Map View
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp)
+                ) {
                 AndroidView(
                     factory = { context ->
                         MapView(context).apply {
@@ -398,133 +376,155 @@ fun RoutePlanningScreen(
                         }
                     }
                 }
+                
+                // Expand Map Button
+                FloatingActionButton(
+                    onClick = { 
+                        println("Expand button clicked - setting isFullScreenMap to true")
+                        isFullScreenMap = true 
+                    },
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp),
+                    containerColor = Color(0xFF4CAF50), // Changed to green for better visibility
+                    contentColor = Color.White
+                ) {
+                    Icon(
+                        Icons.Default.LocationOn,
+                        contentDescription = "Expand Map",
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
             
-            // Route Information
-            LazyColumn(
+            // Instructions (collapsible)
+            if (showInstructions) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text(
+                            text = "Instructions:",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF673AB7)
+                        )
+                        
+                        Text(
+                            text = "1. Tap the map to add a stop",
+                            fontSize = 14.sp,
+                            color = Color.DarkGray
+                        )
+                        
+                        Text(
+                            text = "2. Select stops on map",
+                            fontSize = 14.sp,
+                            color = Color.DarkGray
+                        )
+                        
+                        Text(
+                            text = "3. Tap Save Route button to save your route",
+                            fontSize = 14.sp,
+                            color = Color.DarkGray
+                        )
+                        
+                        Text(
+                            text = "4. Tap the location button (top-right) to show your position",
+                            fontSize = 14.sp,
+                            color = Color.DarkGray
+                        )
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            
+            // Route Settings Card (outside LazyColumn)
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
-                // Instructions (collapsible)
-                if (showInstructions) {
-                    item {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(16.dp)
-                            ) {
-                                Text(
-                                    text = "Instructions:",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = Color(0xFF673AB7)
-                                )
-                                
-                                Text(
-                                    text = "1. Tap the map to add a stop",
-                                    fontSize = 14.sp,
-                                    color = Color.DarkGray
-                                )
-                                
-                                Text(
-                                    text = "2. Select stops on map",
-                                    fontSize = 14.sp,
-                                    color = Color.DarkGray
-                                )
-                                
-                                Text(
-                                    text = "3. Tap ✓ to save your route",
-                                    fontSize = 14.sp,
-                                    color = Color.DarkGray
-                                )
-                                
-                                Text(
-                                    text = "4. Tap the location button (top-right) to show your position",
-                                    fontSize = 14.sp,
-                                    color = Color.DarkGray
-                                )
-                            }
-                        }
-                    }
-                }
-                
-                // Stop Distance Input
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            Text(
-                                text = "Route Settings",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF673AB7)
-                            )
-                            
-                            Spacer(modifier = Modifier.height(8.dp))
-                            
-                            OutlinedTextField(
-                                value = stopDist,
-                                onValueChange = { stopDist = it },
-                                label = { Text("Stop Distance (meters)") },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
-                                )
-                            )
-                            
-                            Spacer(modifier = Modifier.height(8.dp))
-                            
-                            currentLocation?.let { location ->
-                                Text(
-                                    text = "Current Location: ${if (currentLocationAddress.isNotEmpty()) currentLocationAddress else "${location.latitude}, ${location.longitude}"}",
-                                    fontSize = 14.sp,
-                                    color = Color.DarkGray
-                                )
-                            }
-                            
-                            Text(
-                                text = "Selected Stops: ${stops.size}",
-                                fontSize = 14.sp,
-                                color = Color.DarkGray
-                            )
-                            
-                            Text(
-                                text = "Location Permission: ${if (hasLocationPermission) "Granted" else "Denied"}",
-                                fontSize = 12.sp,
-                                color = if (hasLocationPermission) Color.Green else Color.Red
-                            )
-                            
-                            Text(
-                                text = "GPS Enabled: ${if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) "Yes" else "No"}",
-                                fontSize = 12.sp,
-                                color = if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) Color.Green else Color.Red
-                            )
-                            // Removed manual 'Enable My Location' button
-                        }
-                    }
-                }
-                
-                item {
-                    Spacer(modifier = Modifier.height(16.dp))
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
                     Text(
-                        text = "Stops",
+                        text = "Route Settings",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF673AB7)
                     )
+                    
                     Spacer(modifier = Modifier.height(8.dp))
+                    
+                    OutlinedTextField(
+                        value = stopDist,
+                        onValueChange = { stopDist = it },
+                        label = { Text("Stop Distance (meters)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                            keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
+                        )
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    currentLocation?.let { location ->
+                        Text(
+                            text = "Current Location: ${if (currentLocationAddress.isNotEmpty()) currentLocationAddress else "${location.latitude}, ${location.longitude}"}",
+                            fontSize = 14.sp,
+                            color = Color.DarkGray
+                        )
+                    }
+                    
+                    Text(
+                        text = "Selected Stops: ${stops.size}",
+                        fontSize = 14.sp,
+                        color = Color.DarkGray
+                    )
+                    
+                    Text(
+                        text = "Location Permission: ${if (hasLocationPermission) "Granted" else "Denied"}",
+                        fontSize = 12.sp,
+                        color = if (hasLocationPermission) Color.Green else Color.Red
+                    )
+                    
+                    Text(
+                        text = "GPS Enabled: ${if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) "Yes" else "No"}",
+                        fontSize = 12.sp,
+                        color = if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) Color.Green else Color.Red
+                    )
                 }
-                
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Stops Heading (outside LazyColumn)
+            Text(
+                text = "Stops",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF673AB7),
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // Stops List as LazyColumn
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(horizontal = 16.dp)
+            ) {
                 if (stops.isEmpty()) {
                     item {
                         Card(
@@ -608,6 +608,138 @@ fun RoutePlanningScreen(
                     }
                 }
             }
+            
+            // Save Route Button (below LazyColumn)
+            if (stops.isNotEmpty()) {
+                Button(
+                    onClick = {
+                        val route = mutableListOf<RoutePoint>()
+                        // Only add user-selected stops (orders 1, 2, 3, etc.)
+                        stops.forEachIndexed { index, stop ->
+                            route.add(stop.copy(order = index + 1))
+                        }
+                        if (route.isNotEmpty()) {
+                            // Send route with only user-selected stops
+                            walkViewModel.addWalk(userId, genre, route, stopDist.toIntOrNull() ?: 100, stops.size)
+                            navController.navigate("home") {
+                                popUpTo("home") { inclusive = true }
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF4CAF50)
+                    )
+                ) {
+                    Icon(
+                        Icons.Default.Check,
+                        contentDescription = null,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Text(
+                        text = "Save Route",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+            
+            // Fullscreen Map Overlay
+            if (isFullScreenMap) {
+                println("Rendering fullscreen map overlay")
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black)
+                ) {
+                    // Fullscreen Map - reuse the same mapView instance
+                    mapView?.let { existingMapView ->
+                        AndroidView(
+                            factory = { existingMapView },
+                            modifier = Modifier.fillMaxSize(),
+                            update = { mapViewInstance ->
+                                // Ensure the map is properly displayed in fullscreen
+                                googleMapObj?.let { googleMap ->
+                                    // Update markers when going fullscreen
+                                    updateMarkersFunction?.invoke()
+                                }
+                            }
+                        )
+                    } ?: run {
+                        // Fallback if mapView is null - create a new one
+                        AndroidView(
+                            factory = { context ->
+                                MapView(context).apply {
+                                    onCreate(null)
+                                    getMapAsync { googleMap ->
+                                        googleMapObj = googleMap
+                                        googleMap.uiSettings.isZoomControlsEnabled = true
+                                        googleMap.uiSettings.isMyLocationButtonEnabled = true
+                                        googleMap.uiSettings.isCompassEnabled = true
+                                        googleMap.uiSettings.isMapToolbarEnabled = true
+                                        
+                                        if (hasLocationPermission) {
+                                            try {
+                                                googleMap.isMyLocationEnabled = true
+                                            } catch (e: SecurityException) {
+                                                // Handle permission denied
+                                            }
+                                        }
+                                        
+                                        updateMarkersFunction?.invoke()
+                                    }
+                                }
+                            },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                    
+                    // Close Button
+                    FloatingActionButton(
+                        onClick = { 
+                            println("Close button clicked - setting isFullScreenMap to false")
+                            isFullScreenMap = false 
+                        },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(16.dp),
+                        containerColor = Color(0xFFFF5722), // Changed to red-orange for visibility
+                        contentColor = Color.White
+                    ) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Close Fullscreen"
+                        )
+                    }
+                    
+                    // Map Info Card
+                    Card(
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.9f))
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(12.dp)
+                        ) {
+                            Text(
+                                text = "Tap to add stops",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF673AB7)
+                            )
+                            Text(
+                                text = "Selected: ${stops.size} stops",
+                                fontSize = 12.sp,
+                                color = Color.DarkGray
+                            )
+                        }
+                    }
+                }
+            }
+        }
         }
     }
 }

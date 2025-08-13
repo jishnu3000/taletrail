@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,8 +24,12 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -43,6 +48,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,6 +64,23 @@ import androidx.navigation.NavHostController
 import com.example.tailtrail.ui.viewmodel.AuthViewModel
 import com.example.tailtrail.data.util.Utils
 import kotlinx.coroutines.launch
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.rememberAsyncImagePainter
+import androidx.compose.ui.res.painterResource
+import android.net.Uri
+import android.content.Intent
+import android.provider.MediaStore
+import androidx.core.content.FileProvider
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
+import android.content.Context
+import androidx.compose.runtime.LaunchedEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,6 +88,118 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
     val userDetails = authViewModel.userDetails
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    
+    // Photo upload states
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var showImagePickerDialog by remember { mutableStateOf(false) }
+    var cameraImageUri by remember { mutableStateOf<Uri?>(null) }
+    
+    // Load saved profile photo on app start
+    LaunchedEffect(Unit) {
+        val sharedPrefs = context.getSharedPreferences("profile_prefs", Context.MODE_PRIVATE)
+        val savedImagePath = sharedPrefs.getString("profile_image_uri", null)
+        println("ProfileScreen: Loading saved image path: $savedImagePath")
+        if (savedImagePath != null) {
+            try {
+                val uri = Uri.parse(savedImagePath)
+                println("ProfileScreen: Parsed URI: $uri (scheme: ${uri.scheme})")
+                
+                // Verify the URI is still accessible
+                if (uri.scheme == "file") {
+                    // For file URIs, check if file exists
+                    val file = File(uri.path ?: "")
+                    if (file.exists()) {
+                        println("ProfileScreen: File URI verified - file exists")
+                        selectedImageUri = uri
+                    } else {
+                        println("ProfileScreen: File URI invalid - file does not exist")
+                        sharedPrefs.edit().remove("profile_image_uri").apply()
+                    }
+                } else {
+                    // For content URIs, try to open input stream
+                    context.contentResolver.openInputStream(uri)?.use { 
+                        println("ProfileScreen: Content URI verified - stream opened successfully")
+                        selectedImageUri = uri
+                    }
+                }
+                println("ProfileScreen: Final selectedImageUri: $selectedImageUri")
+            } catch (e: Exception) {
+                println("ProfileScreen: Failed to load image URI: ${e.message}")
+                // If URI is no longer valid, remove it from preferences
+                sharedPrefs.edit().remove("profile_image_uri").apply()
+            }
+        }
+    }
+    
+    // Function to save profile photo URI with persistence
+    fun saveProfilePhotoUri(uri: Uri) {
+        try {
+            println("ProfileScreen: Saving URI: $uri (scheme: ${uri.scheme})")
+            
+            // Take persistent URI permission only for gallery images (content:// scheme)
+            if (uri.scheme == "content") {
+                try {
+                    context.contentResolver.takePersistableUriPermission(
+                        uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                    println("ProfileScreen: Successfully took persistent permission for content URI")
+                } catch (e: SecurityException) {
+                    println("ProfileScreen: Could not take persistent permission (this is normal for some content providers): ${e.message}")
+                    // This is okay - some content providers don't support persistent permissions
+                }
+            } else {
+                println("ProfileScreen: File URI detected, no persistent permission needed")
+            }
+            
+            val sharedPrefs = context.getSharedPreferences("profile_prefs", Context.MODE_PRIVATE)
+            sharedPrefs.edit().putString("profile_image_uri", uri.toString()).apply()
+            selectedImageUri = uri
+            println("ProfileScreen: Successfully saved and set URI: $uri")
+            scope.launch {
+                snackbarHostState.showSnackbar("Profile photo updated successfully!")
+            }
+        } catch (e: Exception) {
+            println("ProfileScreen: Error saving photo: ${e.message}")
+            scope.launch {
+                snackbarHostState.showSnackbar("Error saving photo: ${e.message}")
+            }
+        }
+    }
+    
+    // Function to create camera image file
+    fun createImageFile(): File {
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val storageDir = File(context.getExternalFilesDir(null), "profile_photos")
+        if (!storageDir.exists()) {
+            storageDir.mkdirs()
+        }
+        return File(storageDir, "PROFILE_${timeStamp}.jpg")
+    }
+    
+    // Image picker launcher
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { saveProfilePhotoUri(it) }
+    }
+    
+    // Camera launcher
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        println("ProfileScreen: Camera result - success: $success, cameraImageUri: $cameraImageUri")
+        if (success && cameraImageUri != null) {
+            println("ProfileScreen: Camera capture successful, saving URI: ${cameraImageUri}")
+            saveProfilePhotoUri(cameraImageUri!!)
+        } else {
+            println("ProfileScreen: Camera capture failed or cancelled")
+            scope.launch {
+                snackbarHostState.showSnackbar("Camera capture ${if (success) "failed - no image URI" else "cancelled"}")
+            }
+        }
+    }
     
     LaunchedEffect(Unit) {
         authViewModel.fetchUserDetails()
@@ -171,19 +308,103 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
                 ) {
                     item {
                         // Profile Avatar
-                        Box(
-                            modifier = Modifier
-                                .size(120.dp)
-                                .clip(CircleShape)
-                                .background(Color.White),
-                            contentAlignment = Alignment.Center
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Icon(
-                                Icons.Default.Person,
-                                contentDescription = "Profile Picture",
-                                modifier = Modifier.size(60.dp),
-                                tint = Color(0xFF673AB7)
-                            )
+                            Box(
+                                modifier = Modifier.size(140.dp), // Increased to accommodate camera icon
+                                contentAlignment = Alignment.Center
+                            ) {
+                                // Main profile image circle
+                                Box(
+                                    modifier = Modifier
+                                        .size(120.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.White)
+                                        .clickable { showImagePickerDialog = true },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (selectedImageUri != null) {
+                                        Image(
+                                            painter = rememberAsyncImagePainter(
+                                                model = selectedImageUri,
+                                                onError = { 
+                                                    // If image fails to load, clear the saved URI
+                                                    scope.launch {
+                                                        val sharedPrefs = context.getSharedPreferences("profile_prefs", Context.MODE_PRIVATE)
+                                                        sharedPrefs.edit().remove("profile_image_uri").apply()
+                                                        selectedImageUri = null
+                                                        snackbarHostState.showSnackbar("Failed to load profile image")
+                                                    }
+                                                }
+                                            ),
+                                            contentDescription = "Profile Picture",
+                                            modifier = Modifier
+                                                .size(120.dp)
+                                                .clip(CircleShape),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    } else {
+                                        // Default profile icon
+                                        Box(
+                                            modifier = Modifier
+                                                .size(120.dp)
+                                                .background(
+                                                    Color(0xFF673AB7).copy(alpha = 0.1f),
+                                                    CircleShape
+                                                ),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Person,
+                                                contentDescription = "Profile Picture",
+                                                modifier = Modifier.size(60.dp),
+                                                tint = Color(0xFF673AB7)
+                                            )
+                                        }
+                                    }
+                                }
+                                
+                                // Camera overlay icon - positioned outside the main circle
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .offset(x = (-8).dp, y = (-8).dp) // Offset to position nicely
+                                        .size(36.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF673AB7))
+                                        .clickable { showImagePickerDialog = true },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        Icons.Default.CameraAlt,
+                                        contentDescription = "Change Photo",
+                                        modifier = Modifier.size(20.dp),
+                                        tint = Color.White
+                                    )
+                                }
+                            }
+                            
+                            // Remove photo button (only show when photo is selected)
+                            if (selectedImageUri != null) {
+                                TextButton(
+                                    onClick = {
+                                        val sharedPrefs = context.getSharedPreferences("profile_prefs", Context.MODE_PRIVATE)
+                                        sharedPrefs.edit().remove("profile_image_uri").apply()
+                                        selectedImageUri = null
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar("Profile photo removed")
+                                        }
+                                    }
+                                ) {
+                                    Text(
+                                        text = "Remove Photo",
+                                        color = Color.White.copy(alpha = 0.8f),
+                                        fontSize = 12.sp
+                                    )
+                                }
+                            }
                         }
                     }
 
@@ -309,6 +530,88 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
                     }
                 }
             }
+        }
+        
+        // Image Picker Dialog
+        if (showImagePickerDialog) {
+            AlertDialog(
+                onDismissRequest = { showImagePickerDialog = false },
+                title = {
+                    Text(
+                        text = "Change Profile Photo",
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF673AB7)
+                    )
+                },
+                text = {
+                    Text(
+                        text = "Choose how you'd like to add your photo:",
+                        color = Color.DarkGray
+                    )
+                },
+                confirmButton = {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        TextButton(
+                            onClick = {
+                                imagePickerLauncher.launch("image/*")
+                                showImagePickerDialog = false
+                            }
+                        ) {
+                            Icon(
+                                Icons.Default.PhotoLibrary,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Gallery")
+                        }
+                        
+                        TextButton(
+                            onClick = {
+                                try {
+                                    println("ProfileScreen: Creating camera image file...")
+                                    val imageFile = createImageFile()
+                                    println("ProfileScreen: Created file: ${imageFile.absolutePath}")
+                                    
+                                    cameraImageUri = FileProvider.getUriForFile(
+                                        context,
+                                        "${context.packageName}.fileprovider",
+                                        imageFile
+                                    )
+                                    println("ProfileScreen: Created FileProvider URI: $cameraImageUri")
+                                    
+                                    cameraLauncher.launch(cameraImageUri!!)
+                                    println("ProfileScreen: Launched camera with URI: $cameraImageUri")
+                                } catch (e: Exception) {
+                                    println("ProfileScreen: Error accessing camera: ${e.message}")
+                                    e.printStackTrace()
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar("Error accessing camera: ${e.message}")
+                                    }
+                                }
+                                showImagePickerDialog = false
+                            }
+                        ) {
+                            Icon(
+                                Icons.Default.CameraAlt,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Camera")
+                        }
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showImagePickerDialog = false }
+                    ) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
     }
 }

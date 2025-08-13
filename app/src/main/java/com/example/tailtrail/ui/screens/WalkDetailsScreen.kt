@@ -807,7 +807,7 @@ fun RoutePointCard(
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(if (showStory) "Hide Story" else "View Story")
+                        Text(if (showStory) "Hide" else "View")
                     }
                     
                     // Audio Control Buttons

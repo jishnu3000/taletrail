@@ -74,6 +74,9 @@ dependencies {
     implementation("androidx.compose.material3:material3-window-size-class:1.1.2")
     implementation("androidx.compose.ui:ui-text-google-fonts:1.5.8")
     implementation("androidx.compose.material:material-icons-extended:1.6.8")
+    
+    // Image loading with Coil
+    implementation("io.coil-kt:coil-compose:2.4.0")
 
     // Retrofit dependencies for API communication
     implementation("com.squareup.retrofit2:retrofit:2.9.0")

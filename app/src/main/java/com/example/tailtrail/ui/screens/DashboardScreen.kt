@@ -562,7 +562,7 @@ fun PlacesMapSection(
                             visitedPlaces.forEach { place ->
                                 val marker = Marker(this)
                                 marker.position = GeoPoint(place.latitude, place.longitude)
-                                marker.title = "Walk ${place.walkId} - ${place.storySegment}"
+                                marker.title = "Walk ${place.walkId}"
                                 marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                                 
                                 // Create green marker for visited places

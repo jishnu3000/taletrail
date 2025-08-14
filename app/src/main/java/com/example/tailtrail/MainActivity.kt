@@ -233,7 +233,7 @@ fun FullScreenMapScreen(
                             val marker = org.osmdroid.views.overlay.Marker(this)
                             marker.position = org.osmdroid.util.GeoPoint(place.latitude, place.longitude)
                             marker.title = place.name
-                            marker.snippet = "Visited"
+                            marker.snippet = if (place.storySegment != null) place.storySegment else "Visited"
                             
                             // Set custom marker icon for visited places (green)
                             try {

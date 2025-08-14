@@ -60,24 +60,24 @@ fun DashboardScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Color(0xFFE0E0E0),
+        containerColor = Color(0xFFBBBABA),
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         text = "Dashboard",
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = Color(0xFFDDA04B)
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF673AB7)
+                    containerColor = Color(0xFF170E29)
                 )
             )
         },
         bottomBar = {
             NavigationBar(
-                containerColor = Color.White,
+                containerColor = Color(0xFF170E29),
                 tonalElevation = 8.dp
             ) {
                 NavigationBarItem(
@@ -91,9 +91,11 @@ fun DashboardScreen(
                     selected = false,
                     onClick = onNavigateToHome,
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF673AB7),
-                        selectedTextColor = Color(0xFF673AB7),
-                        indicatorColor = Color(0xFF673AB7).copy(alpha = 0.1f)
+                        selectedIconColor = Color(0xFFDDA04B),
+                        selectedTextColor = Color(0xFFDDA04B),
+                        unselectedIconColor = Color(0xFFDDA04B),
+                        unselectedTextColor = Color(0xFFDDA04B),
+                        indicatorColor = Color(0xFFDDA04B).copy(alpha = 0.1f)
                     )
                 )
                 NavigationBarItem(
@@ -107,9 +109,11 @@ fun DashboardScreen(
                     selected = false,
                     onClick = onNavigateToProfile,
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF673AB7),
-                        selectedTextColor = Color(0xFF673AB7),
-                        indicatorColor = Color(0xFF673AB7).copy(alpha = 0.1f)
+                        selectedIconColor = Color(0xFFDDA04B),
+                        selectedTextColor = Color(0xFFDDA04B),
+                        unselectedIconColor = Color(0xFFDDA04B),
+                        unselectedTextColor = Color(0xFFDDA04B),
+                        indicatorColor = Color(0xFFDDA04B).copy(alpha = 0.1f)
                     )
                 )
                 NavigationBarItem(
@@ -123,9 +127,11 @@ fun DashboardScreen(
                     selected = true,
                     onClick = { },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF673AB7),
-                        selectedTextColor = Color(0xFF673AB7),
-                        indicatorColor = Color(0xFF673AB7).copy(alpha = 0.1f)
+                        selectedIconColor = Color(0xFFDDA04B),
+                        selectedTextColor = Color(0xFFDDA04B),
+                        unselectedIconColor = Color(0xFFDDA04B),
+                        unselectedTextColor = Color(0xFFDDA04B),
+                        indicatorColor = Color(0xFFDDA04B).copy(alpha = 0.1f)
                     )
                 )
             }
@@ -135,14 +141,7 @@ fun DashboardScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF6A5ACD),
-                            Color(0xFF483D8B)
-                        )
-                    )
-                )
+                .background(Color(0xFFBBBABA))
         ) {
             when {
                 uiState.isLoading -> {
@@ -231,7 +230,7 @@ fun StatisticsSection(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.9f)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF170E29)),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
@@ -243,7 +242,7 @@ fun StatisticsSection(
                 text = "Your Statistics",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF673AB7)
+                color = Color(0xFFDDA04B)
             )
             
             Row(
@@ -327,7 +326,7 @@ fun ProgressSection(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.9f)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF170E29)),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
@@ -339,7 +338,7 @@ fun ProgressSection(
                 text = "Places Progress",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF673AB7)
+                color = Color(0xFFDDA04B)
             )
             
             // Places Progress Pie Chart
@@ -489,7 +488,7 @@ fun PlacesMapSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(250.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.9f)),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF170E29)),
             shape = RoundedCornerShape(16.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
@@ -511,7 +510,7 @@ fun PlacesMapSection(
                         text = "Visited Places (${visitedPlaces.size})",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF673AB7)
+                        color = Color(0xFFDDA04B)
                     )
                 }
                 
@@ -561,7 +560,7 @@ fun PlacesMapSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(250.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.9f)),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF170E29)),
             shape = RoundedCornerShape(16.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
@@ -583,7 +582,7 @@ fun PlacesMapSection(
                         text = "Places to Visit (${notVisitedPlaces.size})",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF673AB7)
+                        color = Color(0xFFDDA04B)
                     )
                 }
                 

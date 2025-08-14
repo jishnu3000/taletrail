@@ -103,24 +103,24 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Color(0xFFE0E0E0),
+        containerColor = Color(0xFFBBBABA),
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         text = "Home",
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = Color(0xFFDDA04B)
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF673AB7)
+                    containerColor = Color(0xFF170E29)
                 )
             )
         },
         bottomBar = {
             NavigationBar(
-                containerColor = Color.White,
+                containerColor = Color(0xFF170E29),
                 tonalElevation = 8.dp
             ) {
                 NavigationBarItem(
@@ -134,9 +134,11 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
                     selected = true,
                     onClick = { navController.navigate("home") },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF673AB7),
-                        selectedTextColor = Color(0xFF673AB7),
-                        indicatorColor = Color(0xFF673AB7).copy(alpha = 0.1f)
+                        selectedIconColor = Color(0xFFDDA04B),
+                        selectedTextColor = Color(0xFFDDA04B),
+                        unselectedIconColor = Color(0xFFDDA04B),
+                        unselectedTextColor = Color(0xFFDDA04B),
+                        indicatorColor = Color(0xFFDDA04B).copy(alpha = 0.1f)
                     )
                 )
                 NavigationBarItem(
@@ -152,9 +154,11 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
                         if (!isQuizRequired) navController.navigate("profile")
                     },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF673AB7),
-                        selectedTextColor = Color(0xFF673AB7),
-                        indicatorColor = Color(0xFF673AB7).copy(alpha = 0.1f)
+                        selectedIconColor = Color(0xFFDDA04B),
+                        selectedTextColor = Color(0xFFDDA04B),
+                        unselectedIconColor = Color(0xFFDDA04B),
+                        unselectedTextColor = Color(0xFFDDA04B),
+                        indicatorColor = Color(0xFFDDA04B).copy(alpha = 0.1f)
                     ),
                     enabled = !isQuizRequired
                 )
@@ -171,9 +175,11 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
                         if (!isQuizRequired) navController.navigate("dashboard")
                     },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF673AB7),
-                        selectedTextColor = Color(0xFF673AB7),
-                        indicatorColor = Color(0xFF673AB7).copy(alpha = 0.1f)
+                        selectedIconColor = Color(0xFFDDA04B),
+                        selectedTextColor = Color(0xFFDDA04B),
+                        unselectedIconColor = Color(0xFFDDA04B),
+                        unselectedTextColor = Color(0xFFDDA04B),
+                        indicatorColor = Color(0xFFDDA04B).copy(alpha = 0.1f)
                     ),
                     enabled = !isQuizRequired
                 )
@@ -207,44 +213,25 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
                     .padding(16.dp)
             ) {
                 item {
-                    // User Info Card
-                    Card(
+                    // Walks in Progress Section in Box
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-            Text(
-                                text = "Welcome, ${currentUser?.name ?: "User"}!",
-                                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF673AB7)
-            )
-                            
-                            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                                text = "Your walking adventures await",
-                                fontSize = 16.sp,
-                                color = Color.DarkGray
+                            .background(
+                                color = Color(0xFF170E29),
+                                shape = RoundedCornerShape(16.dp)
                             )
-                        }
+                            .padding(20.dp)
+                    ) {
+                        Text(
+                            text = "Walks in Progress",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFDDA04B)
+                        )
                     }
-                }
-                
-                item {
-                    // Walks in Progress Section
-                    Text(
-                        text = "Walks in Progress",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF673AB7),
-                        modifier = Modifier.padding(vertical = 16.dp)
-                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
                 
                 if (isLoading) {
@@ -364,7 +351,7 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
                     .height(56.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF673AB7)
+                            containerColor = Color(0xFF170E29)
                 )
             ) {
                         Row(
@@ -374,13 +361,13 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
                             Icon(
                                 Icons.Default.Add,
                                 contentDescription = "Add Walk",
-                                tint = Color.White,
+                                tint = Color(0xFFDDA04B),
                                 modifier = Modifier.padding(end = 8.dp)
                             )
                 Text(
                                 text = "Add Walk",
                     fontSize = 18.sp,
-                                color = Color.White
+                                color = Color(0xFFDDA04B)
                             )
                         }
                     }

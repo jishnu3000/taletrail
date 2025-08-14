@@ -211,17 +211,17 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
                     Text(
                         text = "Profile",
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = Color(0xFFDDA04B)
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF673AB7)
+                    containerColor = Color(0xFF170E29)
                 )
             )
         },
         bottomBar = {
             NavigationBar(
-                containerColor = Color.White,
+                containerColor = Color(0xFF170E29),
                 tonalElevation = 8.dp
             ) {
                 NavigationBarItem(
@@ -235,9 +235,11 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
                     selected = false,
                     onClick = { navController.navigate("home") },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF673AB7),
-                        selectedTextColor = Color(0xFF673AB7),
-                        indicatorColor = Color(0xFF673AB7).copy(alpha = 0.1f)
+                        selectedIconColor = Color(0xFFDDA04B),
+                        selectedTextColor = Color(0xFFDDA04B),
+                        unselectedIconColor = Color(0xFFDDA04B),
+                        unselectedTextColor = Color(0xFFDDA04B),
+                        indicatorColor = Color(0xFFDDA04B).copy(alpha = 0.1f)
                     )
                 )
                 NavigationBarItem(
@@ -251,9 +253,11 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
                     selected = true,
                     onClick = { navController.navigate("profile") },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF673AB7),
-                        selectedTextColor = Color(0xFF673AB7),
-                        indicatorColor = Color(0xFF673AB7).copy(alpha = 0.1f)
+                        selectedIconColor = Color(0xFFDDA04B),
+                        selectedTextColor = Color(0xFFDDA04B),
+                        unselectedIconColor = Color(0xFFDDA04B),
+                        unselectedTextColor = Color(0xFFDDA04B),
+                        indicatorColor = Color(0xFFDDA04B).copy(alpha = 0.1f)
                     )
                 )
                 NavigationBarItem(
@@ -267,9 +271,11 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
                     selected = false,
                     onClick = { navController.navigate("dashboard") },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF673AB7),
-                        selectedTextColor = Color(0xFF673AB7),
-                        indicatorColor = Color(0xFF673AB7).copy(alpha = 0.1f)
+                        selectedIconColor = Color(0xFFDDA04B),
+                        selectedTextColor = Color(0xFFDDA04B),
+                        unselectedIconColor = Color(0xFFDDA04B),
+                        unselectedTextColor = Color(0xFFDDA04B),
+                        indicatorColor = Color(0xFFDDA04B).copy(alpha = 0.1f)
                     )
                 )
             }
@@ -280,14 +286,7 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF9C27B0), // Purple
-                            Color(0xFF673AB7)  // Darker purple
-                        )
-                    )
-                )
+                .background(Color(0xFFBBBABA))
         ) {
             if (userDetails == null) {
                 // Loading state - center the progress indicator
@@ -351,7 +350,7 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
                                             modifier = Modifier
                                                 .size(120.dp)
                                                 .background(
-                                                    Color(0xFF673AB7).copy(alpha = 0.1f),
+                                                    Color(0xFF170E29),
                                                     CircleShape
                                                 ),
                                             contentAlignment = Alignment.Center
@@ -360,7 +359,7 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
                                                 Icons.Default.Person,
                                                 contentDescription = "Profile Picture",
                                                 modifier = Modifier.size(60.dp),
-                                                tint = Color(0xFF673AB7)
+                                                tint = Color(0xFFDDA04B)
                                             )
                                         }
                                     }
@@ -373,7 +372,7 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
                                         .offset(x = (-8).dp, y = (-8).dp) // Offset to position nicely
                                         .size(36.dp)
                                         .clip(CircleShape)
-                                        .background(Color(0xFF673AB7))
+                                        .background(Color(0xFF170E29))
                                         .clickable { showImagePickerDialog = true },
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -381,7 +380,7 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
                                         Icons.Default.CameraAlt,
                                         contentDescription = "Change Photo",
                                         modifier = Modifier.size(20.dp),
-                                        tint = Color.White
+                                        tint = Color(0xFFDDA04B)
                                     )
                                 }
                             }
@@ -536,17 +535,18 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
         if (showImagePickerDialog) {
             AlertDialog(
                 onDismissRequest = { showImagePickerDialog = false },
+                containerColor = Color(0xFF170E29),
                 title = {
                     Text(
                         text = "Change Profile Photo",
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF673AB7)
+                        color = Color(0xFFDDA04B)
                     )
                 },
                 text = {
                     Text(
                         text = "Choose how you'd like to add your photo:",
-                        color = Color.DarkGray
+                        color = Color(0xFFDDA04B)
                     )
                 },
                 confirmButton = {
@@ -626,7 +626,7 @@ fun ProfileInfoCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.9f)
+            containerColor = Color(0xFF170E29)
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 8.dp
@@ -642,13 +642,13 @@ fun ProfileInfoCard(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF673AB7).copy(alpha = 0.1f)),
+                    .background(Color(0xFFDDA04B).copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     icon,
                     contentDescription = label,
-                    tint = Color(0xFF673AB7),
+                    tint = Color(0xFFDDA04B),
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -661,14 +661,14 @@ fun ProfileInfoCard(
                 Text(
                     text = label,
                     fontSize = 14.sp,
-                    color = Color.Gray,
+                    color = Color(0xFFDDA04B).copy(alpha = 0.7f),
                     fontWeight = FontWeight.Medium
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = value,
                     fontSize = 16.sp,
-                    color = Color.Black,
+                    color = Color(0xFFDDA04B),
                     fontWeight = FontWeight.SemiBold
                 )
             }

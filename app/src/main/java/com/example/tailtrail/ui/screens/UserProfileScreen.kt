@@ -23,7 +23,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Quiz
-import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.Button
@@ -81,6 +81,9 @@ import java.text.SimpleDateFormat
 import java.util.*
 import android.content.Context
 import androidx.compose.runtime.LaunchedEffect
+import android.Manifest
+import androidx.core.content.ContextCompat
+import android.content.pm.PackageManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,41 +98,14 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
     var showImagePickerDialog by remember { mutableStateOf(false) }
     var cameraImageUri by remember { mutableStateOf<Uri?>(null) }
     
-    // Load saved profile photo on app start
-    LaunchedEffect(Unit) {
-        val sharedPrefs = context.getSharedPreferences("profile_prefs", Context.MODE_PRIVATE)
-        val savedImagePath = sharedPrefs.getString("profile_image_uri", null)
-        println("ProfileScreen: Loading saved image path: $savedImagePath")
-        if (savedImagePath != null) {
-            try {
-                val uri = Uri.parse(savedImagePath)
-                println("ProfileScreen: Parsed URI: $uri (scheme: ${uri.scheme})")
-                
-                // Verify the URI is still accessible
-                if (uri.scheme == "file") {
-                    // For file URIs, check if file exists
-                    val file = File(uri.path ?: "")
-                    if (file.exists()) {
-                        println("ProfileScreen: File URI verified - file exists")
-                        selectedImageUri = uri
-                    } else {
-                        println("ProfileScreen: File URI invalid - file does not exist")
-                        sharedPrefs.edit().remove("profile_image_uri").apply()
-                    }
-                } else {
-                    // For content URIs, try to open input stream
-                    context.contentResolver.openInputStream(uri)?.use { 
-                        println("ProfileScreen: Content URI verified - stream opened successfully")
-                        selectedImageUri = uri
-                    }
-                }
-                println("ProfileScreen: Final selectedImageUri: $selectedImageUri")
-            } catch (e: Exception) {
-                println("ProfileScreen: Failed to load image URI: ${e.message}")
-                // If URI is no longer valid, remove it from preferences
-                sharedPrefs.edit().remove("profile_image_uri").apply()
-            }
+    // Function to create camera image file
+    fun createImageFile(): File {
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val storageDir = File(context.getExternalFilesDir(null), "profile_photos")
+        if (!storageDir.exists()) {
+            storageDir.mkdirs()
         }
+        return File(storageDir, "PROFILE_${timeStamp}.jpg")
     }
     
     // Function to save profile photo URI with persistence
@@ -168,23 +144,6 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
         }
     }
     
-    // Function to create camera image file
-    fun createImageFile(): File {
-        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val storageDir = File(context.getExternalFilesDir(null), "profile_photos")
-        if (!storageDir.exists()) {
-            storageDir.mkdirs()
-        }
-        return File(storageDir, "PROFILE_${timeStamp}.jpg")
-    }
-    
-    // Image picker launcher
-    val imagePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let { saveProfilePhotoUri(it) }
-    }
-    
     // Camera launcher
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
@@ -199,6 +158,121 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
                 snackbarHostState.showSnackbar("Camera capture ${if (success) "failed - no image URI" else "cancelled"}")
             }
         }
+    }
+    
+    // Permission launcher for camera
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            // Permission granted, proceed with camera
+            try {
+                println("ProfileScreen: Camera permission granted, creating camera image file...")
+                val imageFile = createImageFile()
+                println("ProfileScreen: Created file: ${imageFile.absolutePath}")
+                
+                cameraImageUri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.fileprovider",
+                    imageFile
+                )
+                println("ProfileScreen: Created FileProvider URI: $cameraImageUri")
+                
+                cameraLauncher.launch(cameraImageUri!!)
+                println("ProfileScreen: Launched camera with URI: $cameraImageUri")
+            } catch (e: Exception) {
+                println("ProfileScreen: Error accessing camera after permission granted: ${e.message}")
+                e.printStackTrace()
+                scope.launch {
+                    snackbarHostState.showSnackbar("Error accessing camera: ${e.message}")
+                }
+            }
+        } else {
+            // Permission denied
+            scope.launch {
+                snackbarHostState.showSnackbar("Camera permission is required to take photos")
+            }
+        }
+    }
+    
+    // Load saved profile photo on app start
+    LaunchedEffect(Unit) {
+        val sharedPrefs = context.getSharedPreferences("profile_prefs", Context.MODE_PRIVATE)
+        val savedImagePath = sharedPrefs.getString("profile_image_uri", null)
+        println("ProfileScreen: Loading saved image path: $savedImagePath")
+        if (savedImagePath != null) {
+            try {
+                val uri = Uri.parse(savedImagePath)
+                println("ProfileScreen: Parsed URI: $uri (scheme: ${uri.scheme})")
+                
+                // Verify the URI is still accessible
+                if (uri.scheme == "file") {
+                    // For file URIs, check if file exists
+                    val file = File(uri.path ?: "")
+                    if (file.exists()) {
+                        println("ProfileScreen: File URI verified - file exists")
+                        selectedImageUri = uri
+                    } else {
+                        println("ProfileScreen: File URI invalid - file does not exist")
+                        sharedPrefs.edit().remove("profile_image_uri").apply()
+                    }
+                } else {
+                    // For content URIs, try to open input stream
+                    context.contentResolver.openInputStream(uri)?.use { 
+                        println("ProfileScreen: Content URI verified - stream opened successfully")
+                        selectedImageUri = uri
+                    }
+                }
+                println("ProfileScreen: Final selectedImageUri: $selectedImageUri")
+            } catch (e: Exception) {
+                println("ProfileScreen: Failed to load image URI: ${e.message}")
+                // If URI is no longer valid, remove it from preferences
+                sharedPrefs.edit().remove("profile_image_uri").apply()
+            }
+        }
+    }
+    
+    // Function to check camera permission and launch camera
+    fun launchCameraWithPermission() {
+        val cameraPermission = Manifest.permission.CAMERA
+        when {
+            ContextCompat.checkSelfPermission(context, cameraPermission) == PackageManager.PERMISSION_GRANTED -> {
+                // Permission already granted, proceed with camera
+                try {
+                    println("ProfileScreen: Camera permission already granted, creating camera image file...")
+                    val imageFile = createImageFile()
+                    println("ProfileScreen: Created file: ${imageFile.absolutePath}")
+                    
+                    cameraImageUri = FileProvider.getUriForFile(
+                        context,
+                        "${context.packageName}.fileprovider",
+                        imageFile
+                    )
+                    println("ProfileScreen: Created FileProvider URI: $cameraImageUri")
+                    
+                    cameraLauncher.launch(cameraImageUri!!)
+                    println("ProfileScreen: Launched camera with URI: $cameraImageUri")
+                } catch (e: Exception) {
+                    println("ProfileScreen: Error accessing camera: ${e.message}")
+                    e.printStackTrace()
+                    scope.launch {
+                        snackbarHostState.showSnackbar("Error accessing camera: ${e.message}")
+                    }
+                }
+            }
+            else -> {
+                // Request permission
+                println("ProfileScreen: Requesting camera permission...")
+                cameraPermissionLauncher.launch(cameraPermission)
+            }
+        }
+    }
+    
+    // Image picker launcher
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { saveProfilePhotoUri(it) }
     }
     
     LaunchedEffect(Unit) {
@@ -460,8 +534,8 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
                                 .height(56.dp),
                             shape = RoundedCornerShape(28.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.White,
-                                contentColor = Color(0xFF673AB7)
+                                containerColor = Color(0xFF170E29),
+                                contentColor = Color(0xFFDDA04B)
                             ),
                             elevation = ButtonDefaults.buttonElevation(
                                 defaultElevation = 8.dp,
@@ -510,7 +584,7 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
                             )
                         ) {
                             Icon(
-                                Icons.Default.Logout,
+                                Icons.AutoMirrored.Filled.Logout,
                                 contentDescription = "Logout",
                                 modifier = Modifier.size(24.dp)
                             )
@@ -557,7 +631,10 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
                             onClick = {
                                 imagePickerLauncher.launch("image/*")
                                 showImagePickerDialog = false
-                            }
+                            },
+                            colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                                contentColor = Color(0xFFDDA04B)
+                            )
                         ) {
                             Icon(
                                 Icons.Default.PhotoLibrary,
@@ -570,29 +647,12 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
                         
                         TextButton(
                             onClick = {
-                                try {
-                                    println("ProfileScreen: Creating camera image file...")
-                                    val imageFile = createImageFile()
-                                    println("ProfileScreen: Created file: ${imageFile.absolutePath}")
-                                    
-                                    cameraImageUri = FileProvider.getUriForFile(
-                                        context,
-                                        "${context.packageName}.fileprovider",
-                                        imageFile
-                                    )
-                                    println("ProfileScreen: Created FileProvider URI: $cameraImageUri")
-                                    
-                                    cameraLauncher.launch(cameraImageUri!!)
-                                    println("ProfileScreen: Launched camera with URI: $cameraImageUri")
-                                } catch (e: Exception) {
-                                    println("ProfileScreen: Error accessing camera: ${e.message}")
-                                    e.printStackTrace()
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar("Error accessing camera: ${e.message}")
-                                    }
-                                }
+                                launchCameraWithPermission()
                                 showImagePickerDialog = false
-                            }
+                            },
+                            colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                                contentColor = Color(0xFFDDA04B)
+                            )
                         ) {
                             Icon(
                                 Icons.Default.CameraAlt,
@@ -606,7 +666,10 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
                 },
                 dismissButton = {
                     TextButton(
-                        onClick = { showImagePickerDialog = false }
+                        onClick = { showImagePickerDialog = false },
+                        colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                            contentColor = Color(0xFFDDA04B)
+                        )
                     ) {
                         Text("Cancel")
                     }

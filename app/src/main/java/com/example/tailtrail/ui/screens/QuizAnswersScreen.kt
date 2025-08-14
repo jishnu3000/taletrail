@@ -78,7 +78,7 @@ fun QuizAnswersScreen(navController: NavHostController, authViewModel: AuthViewM
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            CircularProgressIndicator(color = Color.White)
+                            CircularProgressIndicator(color = Color(0xFFDDA04B))
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
                                 text = "Loading quiz answers...",

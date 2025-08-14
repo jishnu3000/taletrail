@@ -152,7 +152,7 @@ fun DashboardScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator(color = Color.White)
+                        CircularProgressIndicator(color = Color(0xFFDDA04B))
                     }
                 }
                 

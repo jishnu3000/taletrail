@@ -264,7 +264,7 @@ fun WalkDetailsScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator(
-                            color = Color(0xFF170E29)
+                            color = Color(0xFFDDA04B)
                         )
                     }
                 }
@@ -762,7 +762,7 @@ fun RoutePointCard(
                     if (isCheckingIn) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(16.dp),
-                            color = Color.White,
+                            color = Color(0xFFDDA04B),
                             strokeWidth = 2.dp
                         )
                         Spacer(modifier = Modifier.width(8.dp))

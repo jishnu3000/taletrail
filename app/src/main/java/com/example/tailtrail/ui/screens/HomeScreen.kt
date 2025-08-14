@@ -242,7 +242,7 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
                                 .padding(32.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator(color = Color(0xFF673AB7))
+                            CircularProgressIndicator(color = Color(0xFFDDA04B))
                         }
                     }
                 } else if (walks.isEmpty()) {

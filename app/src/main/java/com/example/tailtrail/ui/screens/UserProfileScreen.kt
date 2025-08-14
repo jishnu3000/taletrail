@@ -368,7 +368,7 @@ fun UserProfileScreen(navController: NavHostController, authViewModel: AuthViewM
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = Color.White)
+                    CircularProgressIndicator(color = Color(0xFFDDA04B))
                 }
             } else {
                 // Content in LazyColumn for scrollability

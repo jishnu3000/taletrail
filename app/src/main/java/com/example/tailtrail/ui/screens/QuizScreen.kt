@@ -237,7 +237,7 @@ fun QuizScreen(navController: NavHostController, authViewModel: AuthViewModel? =
                 is QuizState.Loading -> {
                     CircularProgressIndicator(
                         modifier = Modifier.size(20.dp),
-                        color = Color.White
+                        color = Color(0xFFDDA04B)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Submitting...", color = Color.White, fontSize = 18.sp)

@@ -205,7 +205,7 @@ fun LoginScreen(navController: NavHostController, authViewModel: AuthViewModel) 
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(
-                            color = Color.White,
+                            color = Color(0xFFDDA04B),
                             modifier = Modifier.size(24.dp)
                         )
                     } else {

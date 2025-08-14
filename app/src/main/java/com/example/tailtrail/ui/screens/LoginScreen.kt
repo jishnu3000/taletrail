@@ -90,14 +90,6 @@ fun LoginScreen(navController: NavHostController, authViewModel: AuthViewModel) 
                     modifier = Modifier.padding(bottom = 40.dp)
                 )
 
-                // Debug: Show current login state
-                Text(
-                    text = "State: ${authViewModel.loginState}",
-                    fontSize = 12.sp,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
                 // Phone Number Field
                 OutlinedTextField(
                     value = phoneNumber,
@@ -221,65 +213,6 @@ fun LoginScreen(navController: NavHostController, authViewModel: AuthViewModel) 
                             text = "Log In",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                }
-
-                // Debug Button (for testing API connectivity)
-                if (phoneNumber.isBlank() && password.isBlank()) {
-                    Button(
-                        onClick = {
-                            // Test API connectivity
-                            authViewModel.testApiConnection { success, message ->
-                                if (success) {
-                                    Utils.showSnackbar(snackbarHostState, scope, "API test successful: $message")
-                                } else {
-                                    Utils.showSnackbar(snackbarHostState, scope, "API test failed: $message")
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(40.dp)
-                            .padding(horizontal = 16.dp, vertical = 4.dp),
-                        shape = RoundedCornerShape(20.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF170E29),
-                            contentColor = Color(0xFFDDA04B)
-                        ),
-                        enabled = !isLoading
-                    ) {
-                        Text(
-                            text = "Test API Connection",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Normal
-                        )
-                    }
-
-                    // Test Navigation Button
-                    Button(
-                        onClick = {
-                            // Test navigation to home screen
-                            navController.navigate("home") {
-                                popUpTo("welcome") { inclusive = true }
-                            }
-                            Utils.showSnackbar(snackbarHostState, scope, "Navigation test - going to home screen")
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(40.dp)
-                            .padding(horizontal = 16.dp, vertical = 4.dp),
-                        shape = RoundedCornerShape(20.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF170E29),
-                            contentColor = Color(0xFFDDA04B)
-                        ),
-                        enabled = !isLoading
-                    ) {
-                        Text(
-                            text = "Test Navigation to Home",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Normal
                         )
                     }
                 }

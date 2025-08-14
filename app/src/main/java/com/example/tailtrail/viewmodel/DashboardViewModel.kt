@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tailtrail.data.repository.WalkRepository
 import com.example.tailtrail.data.model.DashboardStats
+import com.example.tailtrail.data.model.Place
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,6 +22,21 @@ class DashboardViewModel(
 
     private val _uiState = MutableStateFlow(DashboardUiState())
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
+
+    // Temporary storage for full-screen map navigation
+    var tempVisitedPlaces: List<Place>? = null
+        private set
+    
+    var tempNotVisitedPlaces: List<Place>? = null
+        private set
+
+    fun setTempVisitedPlaces(places: List<Place>) {
+        tempVisitedPlaces = places
+    }
+
+    fun setTempNotVisitedPlaces(places: List<Place>) {
+        tempNotVisitedPlaces = places
+    }
 
     fun fetchDashboardStats(userId: Int) {
         viewModelScope.launch {

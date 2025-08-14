@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -49,7 +50,9 @@ fun DashboardScreen(
     dashboardViewModel: DashboardViewModel,
     userId: Int,
     onNavigateToProfile: () -> Unit,
-    onNavigateToHome: () -> Unit
+    onNavigateToHome: () -> Unit,
+    onNavigateToFullScreenVisitedMap: (List<VisitedPlace>) -> Unit = {},
+    onNavigateToFullScreenNotVisitedMap: (List<NotVisitedPlace>) -> Unit = {}
 ) {
     val uiState by dashboardViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -184,7 +187,9 @@ fun DashboardScreen(
                 uiState.stats != null -> {
                     DashboardContent(
                         stats = uiState.stats!!,
-                        dashboardViewModel = dashboardViewModel
+                        dashboardViewModel = dashboardViewModel,
+                        onNavigateToFullScreenVisitedMap = onNavigateToFullScreenVisitedMap,
+                        onNavigateToFullScreenNotVisitedMap = onNavigateToFullScreenNotVisitedMap
                     )
                 }
             }
@@ -195,7 +200,9 @@ fun DashboardScreen(
 @Composable
 fun DashboardContent(
     stats: DashboardStats,
-    dashboardViewModel: DashboardViewModel
+    dashboardViewModel: DashboardViewModel,
+    onNavigateToFullScreenVisitedMap: (List<VisitedPlace>) -> Unit,
+    onNavigateToFullScreenNotVisitedMap: (List<NotVisitedPlace>) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier
@@ -217,7 +224,13 @@ fun DashboardContent(
         item {
             PlacesMapSection(
                 visitedPlaces = stats.visitedPlaces,
-                notVisitedPlaces = stats.notVisitedPlaces
+                notVisitedPlaces = stats.notVisitedPlaces,
+                onFullScreenVisitedMap = { 
+                    onNavigateToFullScreenVisitedMap(stats.visitedPlaces)
+                },
+                onFullScreenNotVisitedMap = { 
+                    onNavigateToFullScreenNotVisitedMap(stats.notVisitedPlaces)
+                }
             )
         }
     }
@@ -478,7 +491,9 @@ fun PlacesPieChart(
 @Composable
 fun PlacesMapSection(
     visitedPlaces: List<VisitedPlace>,
-    notVisitedPlaces: List<NotVisitedPlace>
+    notVisitedPlaces: List<NotVisitedPlace>,
+    onFullScreenVisitedMap: () -> Unit,
+    onFullScreenNotVisitedMap: () -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -497,21 +512,39 @@ fun PlacesMapSection(
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(bottom = 12.dp)
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Place,
-                        contentDescription = null,
-                        tint = Color(0xFF4CAF50),
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Visited Places (${visitedPlaces.size})",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFDDA04B)
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Place,
+                            contentDescription = null,
+                            tint = Color(0xFF4CAF50),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Visited Places (${visitedPlaces.size})",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFDDA04B)
+                        )
+                    }
+                    
+                    IconButton(
+                        onClick = onFullScreenVisitedMap
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Fullscreen,
+                            contentDescription = "Open full screen",
+                            tint = Color(0xFFDDA04B),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
                 
                 AndroidView(
@@ -569,21 +602,39 @@ fun PlacesMapSection(
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(bottom = 12.dp)
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.LocationOn,
-                        contentDescription = null,
-                        tint = Color(0xFFF44336),
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Places to Visit (${notVisitedPlaces.size})",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFDDA04B)
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = null,
+                            tint = Color(0xFFF44336),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Places to Visit (${notVisitedPlaces.size})",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFDDA04B)
+                        )
+                    }
+                    
+                    IconButton(
+                        onClick = onFullScreenNotVisitedMap
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Fullscreen,
+                            contentDescription = "Open full screen",
+                            tint = Color(0xFFDDA04B),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
                 
                 AndroidView(

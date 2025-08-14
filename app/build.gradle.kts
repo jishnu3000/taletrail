@@ -115,6 +115,9 @@ dependencies {
     // OpenStreetMap
     implementation("org.osmdroid:osmdroid-android:6.1.17")
     
+    // Preferences for osmdroid configuration
+    implementation("androidx.preference:preference-ktx:1.2.1")
+    
     // Debug
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)

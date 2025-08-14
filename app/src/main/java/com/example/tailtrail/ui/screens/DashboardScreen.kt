@@ -8,8 +8,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.TrendingUp
-import androidx.compose.material.icons.filled.DirectionsWalk
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Home
@@ -265,21 +265,21 @@ fun StatisticsSection(
                 horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
             ) {
                 StatCard(
-                    icon = Icons.Default.TrendingUp,
+                    icon = Icons.AutoMirrored.Filled.TrendingUp,
                     title = "Total Distance",
                     value = dashboardViewModel.formatDistance(stats.totalDistance),
                     color = Color(0xFF4CAF50)
                 )
                 
                 StatCard(
-                    icon = Icons.Default.DirectionsWalk,
+                    icon = Icons.AutoMirrored.Filled.DirectionsWalk,
                     title = "Walks Completed",
                     value = "${stats.completedWalks}",
                     color = Color(0xFF2196F3)
                 )
                 
                 StatCard(
-                    icon = Icons.Default.DirectionsWalk,
+                    icon = Icons.AutoMirrored.Filled.DirectionsWalk,
                     title = "Walks In Progress",
                     value = "${stats.incompleteWalks}",
                     color = Color(0xFFFF9800)
@@ -439,12 +439,12 @@ fun PlacesPieChart(
                         text = "Visited",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Color.Black
+                        color = Color(0xFFDDA04B)
                     )
                     Text(
                         text = "$visited places",
                         fontSize = 10.sp,
-                        color = Color.Gray
+                        color = Color(0xFFDDA04B).copy(alpha = 0.7f)
                     )
                 }
             }
@@ -466,12 +466,12 @@ fun PlacesPieChart(
                         text = "Not Visited",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Color.Black
+                        color = Color(0xFFDDA04B)
                     )
                     Text(
                         text = "$notVisited places",
                         fontSize = 10.sp,
-                        color = Color.Gray
+                        color = Color(0xFFDDA04B).copy(alpha = 0.7f)
                     )
                 }
             }
@@ -481,7 +481,7 @@ fun PlacesPieChart(
                 text = "${dashboardViewModel.getProgressPercentage(visited, total).times(100).toInt()}% Complete",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF673AB7),
+                color = Color(0xFFDDA04B),
                 modifier = Modifier.padding(top = 8.dp)
             )
         }

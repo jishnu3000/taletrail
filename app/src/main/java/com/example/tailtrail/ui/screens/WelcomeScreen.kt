@@ -30,8 +30,8 @@ fun WelcomeScreen(navController: NavHostController) {
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xFF9C27B0), // Purple
-                            Color(0xFF673AB7)  // Darker purple
+                            Color(0xFF170E29), // Dark purple
+                            Color(0xFFBBBABA)  // Light gray
                         )
                     )
                 ),
@@ -47,7 +47,7 @@ fun WelcomeScreen(navController: NavHostController) {
                     text = "Tale Trail",
                     fontSize = 42.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White,
+                    color = Color(0xFFDDA04B),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(bottom = 64.dp)
                 )
@@ -61,8 +61,8 @@ fun WelcomeScreen(navController: NavHostController) {
                         .padding(horizontal = 16.dp),
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White,
-                        contentColor = Color(0xFF673AB7)
+                        containerColor = Color(0xFFDDA04B),
+                        contentColor = Color(0xFF170E29)
                     ),
                     elevation = ButtonDefaults.buttonElevation(
                         defaultElevation = 8.dp,
@@ -89,11 +89,11 @@ fun WelcomeScreen(navController: NavHostController) {
                     border = ButtonDefaults.outlinedButtonBorder.copy(
                         width = 2.dp,
                         brush = Brush.horizontalGradient(
-                            colors = listOf(Color.White, Color.White.copy(alpha = 0.8f))
+                            colors = listOf(Color(0xFFDDA04B), Color(0xFFDDA04B).copy(alpha = 0.8f))
                         )
                     ),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Color.White
+                        contentColor = Color(0xFFDDA04B)
                     )
                 ) {
                     Text(

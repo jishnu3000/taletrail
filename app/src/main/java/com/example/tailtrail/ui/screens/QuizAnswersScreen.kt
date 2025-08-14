@@ -51,7 +51,7 @@ fun QuizAnswersScreen(navController: NavHostController, authViewModel: AuthViewM
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF673AB7)
+                    containerColor = Color(0xFF170E29)
                 )
             )
         }
@@ -63,8 +63,8 @@ fun QuizAnswersScreen(navController: NavHostController, authViewModel: AuthViewM
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xFF9C27B0), // Purple
-                            Color(0xFF673AB7)  // Darker purple
+                            Color(0xFFBBBABA), // Light gray
+                            Color(0xFF170E29)  // Dark purple
                         )
                     )
                 )

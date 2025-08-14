@@ -67,7 +67,7 @@ fun LoginScreen(navController: NavHostController, authViewModel: AuthViewModel) 
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Color(0xFFE0E0E0)
+        containerColor = Color(0xFFBBBABA)
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -86,7 +86,7 @@ fun LoginScreen(navController: NavHostController, authViewModel: AuthViewModel) 
                     text = "Log In",
                     fontSize = 36.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF9C27B0),
+                    color = Color(0xFFDDA04B),
                     modifier = Modifier.padding(bottom = 40.dp)
                 )
 
@@ -206,8 +206,8 @@ fun LoginScreen(navController: NavHostController, authViewModel: AuthViewModel) 
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF9C27B0),
-                        contentColor = Color.White
+                        containerColor = Color(0xFF170E29),
+                        contentColor = Color(0xFFDDA04B)
                     ),
                     enabled = !isLoading
                 ) {
@@ -244,8 +244,8 @@ fun LoginScreen(navController: NavHostController, authViewModel: AuthViewModel) 
                             .padding(horizontal = 16.dp, vertical = 4.dp),
                         shape = RoundedCornerShape(20.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Gray,
-                            contentColor = Color.White
+                            containerColor = Color(0xFF170E29),
+                            contentColor = Color(0xFFDDA04B)
                         ),
                         enabled = !isLoading
                     ) {
@@ -271,8 +271,8 @@ fun LoginScreen(navController: NavHostController, authViewModel: AuthViewModel) 
                             .padding(horizontal = 16.dp, vertical = 4.dp),
                         shape = RoundedCornerShape(20.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Blue,
-                            contentColor = Color.White
+                            containerColor = Color(0xFF170E29),
+                            contentColor = Color(0xFFDDA04B)
                         ),
                         enabled = !isLoading
                     ) {
@@ -289,7 +289,7 @@ fun LoginScreen(navController: NavHostController, authViewModel: AuthViewModel) 
                 // Forgot Password
                 Text(
                     text = "Forgot password?",
-                    color = Color.Gray,
+                    color = Color(0xFFDDA04B),
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
@@ -304,12 +304,12 @@ fun LoginScreen(navController: NavHostController, authViewModel: AuthViewModel) 
                 ) {
                     Text(
                         text = "Don't have an account? ",
-                        color = Color.Black,
+                        color = Color(0xFF170E29),
                         fontSize = 14.sp
                     )
                     Text(
                         text = "Sign Up",
-                        color = Color(0xFF9C27B0),
+                        color = Color(0xFFDDA04B),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
                         textDecoration = TextDecoration.Underline,

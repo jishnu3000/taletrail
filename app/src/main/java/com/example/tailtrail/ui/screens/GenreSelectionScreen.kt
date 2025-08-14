@@ -47,7 +47,7 @@ fun GenreSelectionScreen(navController: NavHostController) {
     var selectedGenre by remember { mutableStateOf<String?>(null) }
     
     Scaffold(
-        containerColor = Color(0xFFE0E0E0),
+        containerColor = Color(0xFFBBBABA),
         topBar = {
             TopAppBar(
                 title = {
@@ -67,7 +67,7 @@ fun GenreSelectionScreen(navController: NavHostController) {
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF673AB7)
+                    containerColor = Color(0xFF170E29)
                 )
             )
         }
@@ -83,7 +83,7 @@ fun GenreSelectionScreen(navController: NavHostController) {
                 text = "Select a genre for your walk",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF673AB7),
+                color = Color(0xFFDDA04B),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(bottom = 32.dp)
             )
@@ -102,7 +102,7 @@ fun GenreSelectionScreen(navController: NavHostController) {
                             .clickable { selectedGenre = genre.name },
                         colors = CardDefaults.cardColors(
                             containerColor = if (selectedGenre == genre.name) 
-                                Color(0xFF9C27B0) else Color.Transparent
+                                Color(0xFFDDA04B) else Color.Transparent
                         ),
                         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                         shape = RoundedCornerShape(16.dp)
@@ -141,7 +141,7 @@ fun GenreSelectionScreen(navController: NavHostController) {
                     .height(56.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF9C27B0),
+                    containerColor = Color(0xFF170E29),
                     disabledContainerColor = Color.Gray
                 )
             ) {

@@ -1,5 +1,6 @@
 package com.example.tailtrail.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -125,6 +126,7 @@ fun QuizScreen(navController: NavHostController, authViewModel: AuthViewModel? =
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color(0xFFBBBABA))
             .padding(top = 48.dp, start = 16.dp, end = 16.dp, bottom = 16.dp), // Move content down for notch
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -132,7 +134,7 @@ fun QuizScreen(navController: NavHostController, authViewModel: AuthViewModel? =
             text = "Quiz",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF673AB7),
+            color = Color(0xFFDDA04B),
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
@@ -144,18 +146,29 @@ fun QuizScreen(navController: NavHostController, authViewModel: AuthViewModel? =
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF170E29))
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text(text = question.question, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            text = question.question, 
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFFDDA04B)
+                        )
                         Spacer(modifier = Modifier.height(8.dp))
                         question.options.forEachIndexed { optIdx, option ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 RadioButton(
                                     selected = answers[index] == optIdx,
-                                    onClick = { answers = answers.toMutableList().also { it[index] = optIdx } }
+                                    onClick = { answers = answers.toMutableList().also { it[index] = optIdx } },
+                                    colors = RadioButtonDefaults.colors(
+                                        selectedColor = Color(0xFFDDA04B),
+                                        unselectedColor = Color(0xFFDDA04B)
+                                    )
                                 )
-                                Text(text = option)
+                                Text(
+                                    text = option,
+                                    color = Color(0xFFDDA04B)
+                                )
                             }
                         }
                     }
@@ -215,7 +228,10 @@ fun QuizScreen(navController: NavHostController, authViewModel: AuthViewModel? =
             },
             enabled = allAnswered && quizState != QuizState.Loading,
             modifier = Modifier.fillMaxWidth(0.7f),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9C27B0))
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF170E29),
+                contentColor = Color(0xFFDDA04B)
+            )
         ) {
             when (quizState) {
                 is QuizState.Loading -> {

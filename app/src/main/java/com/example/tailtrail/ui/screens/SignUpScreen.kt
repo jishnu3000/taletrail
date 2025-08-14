@@ -41,7 +41,7 @@ fun SignUpScreen(navController: NavHostController, authViewModel: AuthViewModel)
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Color(0xFFE0E0E0)
+        containerColor = Color(0xFFBBBABA)
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -56,7 +56,7 @@ fun SignUpScreen(navController: NavHostController, authViewModel: AuthViewModel)
                 text = "Sign Up",
                 fontSize = 36.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF9C27B0),
+                color = Color(0xFFDDA04B),
                 modifier = Modifier.padding(bottom = 40.dp)
             )
 
@@ -75,13 +75,13 @@ fun SignUpScreen(navController: NavHostController, authViewModel: AuthViewModel)
                     .padding(bottom = 16.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color.Black,
-                    unfocusedContainerColor = Color.Black,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
+                    focusedContainerColor = Color(0xFF170E29),
+                    unfocusedContainerColor = Color(0xFF170E29),
+                    focusedTextColor = Color(0xFFDDA04B),
+                    unfocusedTextColor = Color(0xFFDDA04B),
                     focusedBorderColor = Color.Transparent,
                     unfocusedBorderColor = Color.Transparent,
-                    cursorColor = Color.White,
+                    cursorColor = Color(0xFFDDA04B),
                     focusedPlaceholderColor = Color.Gray,
                     unfocusedPlaceholderColor = Color.Gray
                 ),
@@ -103,13 +103,13 @@ fun SignUpScreen(navController: NavHostController, authViewModel: AuthViewModel)
                     .padding(bottom = 16.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color.Black,
-                    unfocusedContainerColor = Color.Black,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
+                    focusedContainerColor = Color(0xFF170E29),
+                    unfocusedContainerColor = Color(0xFF170E29),
+                    focusedTextColor = Color(0xFFDDA04B),
+                    unfocusedTextColor = Color(0xFFDDA04B),
                     focusedBorderColor = Color.Transparent,
                     unfocusedBorderColor = Color.Transparent,
-                    cursorColor = Color.White,
+                    cursorColor = Color(0xFFDDA04B),
                     focusedPlaceholderColor = Color.Gray,
                     unfocusedPlaceholderColor = Color.Gray
                 ),
@@ -132,13 +132,13 @@ fun SignUpScreen(navController: NavHostController, authViewModel: AuthViewModel)
                     .padding(bottom = 16.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color.Black,
-                    unfocusedContainerColor = Color.Black,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
+                    focusedContainerColor = Color(0xFF170E29),
+                    unfocusedContainerColor = Color(0xFF170E29),
+                    focusedTextColor = Color(0xFFDDA04B),
+                    unfocusedTextColor = Color(0xFFDDA04B),
                     focusedBorderColor = Color.Transparent,
                     unfocusedBorderColor = Color.Transparent,
-                    cursorColor = Color.White,
+                    cursorColor = Color(0xFFDDA04B),
                     focusedPlaceholderColor = Color.Gray,
                     unfocusedPlaceholderColor = Color.Gray
                 ),
@@ -161,13 +161,13 @@ fun SignUpScreen(navController: NavHostController, authViewModel: AuthViewModel)
                     .padding(bottom = 16.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color.Black,
-                    unfocusedContainerColor = Color.Black,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
+                    focusedContainerColor = Color(0xFF170E29),
+                    unfocusedContainerColor = Color(0xFF170E29),
+                    focusedTextColor = Color(0xFFDDA04B),
+                    unfocusedTextColor = Color(0xFFDDA04B),
                     focusedBorderColor = Color.Transparent,
                     unfocusedBorderColor = Color.Transparent,
-                    cursorColor = Color.White,
+                    cursorColor = Color(0xFFDDA04B),
                     focusedPlaceholderColor = Color.Gray,
                     unfocusedPlaceholderColor = Color.Gray
                 ),
@@ -202,13 +202,13 @@ fun SignUpScreen(navController: NavHostController, authViewModel: AuthViewModel)
                     .padding(bottom = 24.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color.Black,
-                    unfocusedContainerColor = Color.Black,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
+                    focusedContainerColor = Color(0xFF170E29),
+                    unfocusedContainerColor = Color(0xFF170E29),
+                    focusedTextColor = Color(0xFFDDA04B),
+                    unfocusedTextColor = Color(0xFFDDA04B),
                     focusedBorderColor = Color.Transparent,
                     unfocusedBorderColor = Color.Transparent,
-                    cursorColor = Color.White,
+                    cursorColor = Color(0xFFDDA04B),
                     focusedPlaceholderColor = Color.Gray,
                     unfocusedPlaceholderColor = Color.Gray
                 ),
@@ -245,7 +245,8 @@ fun SignUpScreen(navController: NavHostController, authViewModel: AuthViewModel)
                     .padding(bottom = 16.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF9C27B0)
+                    containerColor = Color(0xFF170E29),
+                    contentColor = Color(0xFFDDA04B)
                 )
             ) {
                 Text(
@@ -262,11 +263,11 @@ fun SignUpScreen(navController: NavHostController, authViewModel: AuthViewModel)
             ) {
                 Text(
                     text = "Already have an account?",
-                    color = Color.DarkGray
+                    color = Color(0xFF170E29)
                 )
                 Text(
                     text = "Log in",
-                    color = Color(0xFF9C27B0),
+                    color = Color(0xFFDDA04B),
                     fontWeight = FontWeight.Bold,
                     textDecoration = TextDecoration.Underline,
                     modifier = Modifier

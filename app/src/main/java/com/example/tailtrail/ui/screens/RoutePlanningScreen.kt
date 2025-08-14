@@ -146,7 +146,7 @@ fun RoutePlanningScreen(
     }
     
     Scaffold(
-        containerColor = Color(0xFFE0E0E0),
+        containerColor = Color(0xFFBBBABA),
         topBar = {
             TopAppBar(
                 title = {
@@ -175,7 +175,7 @@ fun RoutePlanningScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF673AB7)
+                    containerColor = Color(0xFF170E29)
                 )
             )
         },
@@ -403,7 +403,7 @@ fun RoutePlanningScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF170E29)),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
                     Column(
@@ -413,7 +413,7 @@ fun RoutePlanningScreen(
                             text = "Instructions:",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF673AB7)
+                            color = Color(0xFF170E29)
                         )
                         
                         Text(
@@ -450,7 +450,7 @@ fun RoutePlanningScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF170E29)),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column(
@@ -460,7 +460,7 @@ fun RoutePlanningScreen(
                         text = "Route Settings",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF673AB7)
+                        color = Color(0xFF170E29)
                     )
                     
                     Spacer(modifier = Modifier.height(8.dp))
@@ -512,7 +512,7 @@ fun RoutePlanningScreen(
                 text = "Stops",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF673AB7),
+                color = Color(0xFF170E29),
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
             
@@ -529,7 +529,7 @@ fun RoutePlanningScreen(
                     item {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF170E29)),
                             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                         ) {
                             Box(
@@ -553,7 +553,7 @@ fun RoutePlanningScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF170E29)),
                             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                         ) {
                             Row(
@@ -568,7 +568,7 @@ fun RoutePlanningScreen(
                                         text = "Stop ${stop.order}",
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.SemiBold,
-                                        color = Color(0xFF673AB7)
+                                        color = Color(0xFF170E29)
                                     )
                                     Text(
                                         text = stopAddresses[stop.order] ?: "${stop.latitude}, ${stop.longitude}",
@@ -728,7 +728,7 @@ fun RoutePlanningScreen(
                                 text = "Tap to add stops",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF673AB7)
+                                color = Color(0xFF170E29)
                             )
                             Text(
                                 text = "Selected: ${stops.size} stops",

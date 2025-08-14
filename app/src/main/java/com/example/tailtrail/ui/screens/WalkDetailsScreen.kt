@@ -246,7 +246,7 @@ fun WalkDetailsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF673AB7)
+                    containerColor = Color(0xFF170E29)
                 )
             )
         }
@@ -255,7 +255,7 @@ fun WalkDetailsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(Color(0xFFE0E0E0))
+                .background(Color(0xFFBBBABA))
         ) {
             when {
                 isLoading -> {
@@ -264,7 +264,7 @@ fun WalkDetailsScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator(
-                            color = Color(0xFF673AB7)
+                            color = Color(0xFF170E29)
                         )
                     }
                 }
@@ -318,7 +318,7 @@ fun WalkDetailsScreen(
                                 text = "Route Points",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF673AB7)
+                                color = Color(0xFF170E29)
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                         }
@@ -388,7 +388,7 @@ fun WalkDetailsScreen(
 fun WalkInfoCard(walkDetails: com.example.tailtrail.data.model.WalkDetails) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF170E29)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
@@ -404,7 +404,7 @@ fun WalkInfoCard(walkDetails: com.example.tailtrail.data.model.WalkDetails) {
                         text = walkDetails.genre,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF673AB7)
+                        color = Color(0xFF170E29)
                     )
                     Text(
                         text = "Walk #${walkDetails.walkId}",
@@ -441,7 +441,7 @@ fun WalkInfoCard(walkDetails: com.example.tailtrail.data.model.WalkDetails) {
 fun WalkProgressCard(walkDetails: com.example.tailtrail.data.model.WalkDetails) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF170E29)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
@@ -451,7 +451,7 @@ fun WalkProgressCard(walkDetails: com.example.tailtrail.data.model.WalkDetails) 
                 text = "Progress",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF673AB7)
+                color = Color(0xFF170E29)
             )
             
             Spacer(modifier = Modifier.height(12.dp))
@@ -482,7 +482,7 @@ fun WalkProgressCard(walkDetails: com.example.tailtrail.data.model.WalkDetails) 
                 } else 0f,
                 modifier = Modifier.fillMaxWidth(),
                 color = Color(0xFF4CAF50),
-                trackColor = Color(0xFFE0E0E0)
+                trackColor = Color(0xFFBBBABA)
             )
         }
     }
@@ -515,7 +515,7 @@ fun LocationStatusCard(
     
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF170E29)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
@@ -694,7 +694,7 @@ fun RoutePointCard(
                         text = "Stop ${route.order}",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF673AB7)
+                        color = Color(0xFF170E29)
                     )
                 }
                 
@@ -798,7 +798,7 @@ fun RoutePointCard(
                         },
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF9C27B0)
+                            containerColor = Color(0xFFDDA04B)
                         )
                     ) {
                         Icon(
@@ -909,7 +909,7 @@ fun RoutePointCard(
                             text = "Story Segment",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF673AB7)
+                            color = Color(0xFF170E29)
                         )
                         
                         Spacer(modifier = Modifier.height(8.dp))
@@ -1023,7 +1023,7 @@ fun InfoItem(
         Icon(
             imageVector = icon,
             contentDescription = label,
-            tint = Color(0xFF673AB7),
+            tint = Color(0xFF170E29),
             modifier = Modifier.size(24.dp)
         )
         
@@ -1033,7 +1033,7 @@ fun InfoItem(
             text = value,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF673AB7)
+            color = Color(0xFF170E29)
         )
         
         Text(

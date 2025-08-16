@@ -33,7 +33,7 @@ import com.example.tailtrail.data.model.Place
 import com.example.tailtrail.data.model.visitedPlacesToPlaces
 import com.example.tailtrail.data.model.notVisitedPlacesToPlaces
 import com.example.tailtrail.ui.screens.*
-import com.example.tailtrail.ui.theme.TailTrailTheme
+import com.example.tailtrail.ui.theme.TaleTrailTheme
 import com.example.tailtrail.ui.viewmodel.AuthViewModel
 import com.example.tailtrail.ui.viewmodel.WalkViewModel
 import com.example.tailtrail.viewmodel.DashboardViewModel
@@ -51,15 +51,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            TailTrailTheme {
-                TailTrailApp()
+            TaleTrailTheme {
+                TaleTrailApp()
             }
         }
     }
 }
 
 @Composable
-fun TailTrailApp() {
+fun TaleTrailApp() {
     val navController = rememberNavController()
     val context = LocalContext.current
     val authViewModel: AuthViewModel = viewModel(factory = AuthViewModel.Factory(context))
@@ -283,8 +283,8 @@ fun FullScreenMapScreen(
 
 @Preview(showBackground = true)
 @Composable
-fun TailTrailAppPreview() {
-    TailTrailTheme {
-        TailTrailApp()
+fun TaleTrailAppPreview() {
+    TaleTrailTheme {
+        TaleTrailApp()
     }
 }

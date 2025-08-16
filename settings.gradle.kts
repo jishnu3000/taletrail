@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "TailTrail"
+rootProject.name = "Tale Trail"
 include(":app")
  

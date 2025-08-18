@@ -377,24 +377,7 @@ fun RoutePlanningScreen(
                     }
                 }
                 
-                // Expand Map Button
-                FloatingActionButton(
-                    onClick = { 
-                        println("Expand button clicked - setting isFullScreenMap to true")
-                        isFullScreenMap = true 
-                    },
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(16.dp),
-                    containerColor = Color(0xFF4CAF50), // Changed to green for better visibility
-                    contentColor = Color.White
-                ) {
-                    Icon(
-                        Icons.Default.LocationOn,
-                        contentDescription = "Expand Map",
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+
             }
             
             // Instructions (collapsible)
@@ -445,26 +428,19 @@ fun RoutePlanningScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
             
-            // Route Settings Card (outside LazyColumn)
+            // Route Settings Card (outside LazyColumn) - Smaller and minimal
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .height(80.dp)
                     .padding(horizontal = 16.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF170E29)),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(8.dp),
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    Text(
-                        text = "Route Settings",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF170E29)
-                    )
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
                     OutlinedTextField(
                         value = stopDist,
                         onValueChange = { stopDist = it },
@@ -473,34 +449,6 @@ fun RoutePlanningScreen(
                         keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                             keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
                         )
-                    )
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    currentLocation?.let { location ->
-                        Text(
-                            text = "Current Location: ${if (currentLocationAddress.isNotEmpty()) currentLocationAddress else "${location.latitude}, ${location.longitude}"}",
-                            fontSize = 14.sp,
-                            color = Color.DarkGray
-                        )
-                    }
-                    
-                    Text(
-                        text = "Selected Stops: ${stops.size}",
-                        fontSize = 14.sp,
-                        color = Color.DarkGray
-                    )
-                    
-                    Text(
-                        text = "Location Permission: ${if (hasLocationPermission) "Granted" else "Denied"}",
-                        fontSize = 12.sp,
-                        color = if (hasLocationPermission) Color.Green else Color.Red
-                    )
-                    
-                    Text(
-                        text = "GPS Enabled: ${if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) "Yes" else "No"}",
-                        fontSize = 12.sp,
-                        color = if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) Color.Green else Color.Red
                     )
                 }
             }

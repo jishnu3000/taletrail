@@ -404,12 +404,12 @@ fun WalkInfoCard(walkDetails: com.example.tailtrail.data.model.WalkDetails) {
                         text = walkDetails.genre,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF170E29)
+                        color = Color(0xFFDDA04B)
                     )
                     Text(
                         text = "Walk #${walkDetails.walkId}",
                         fontSize = 16.sp,
-                        color = Color.Gray
+                        color = Color(0xFFDDA04B).copy(alpha = 0.8f)
                     )
                 }
                 
@@ -1023,7 +1023,7 @@ fun InfoItem(
         Icon(
             imageVector = icon,
             contentDescription = label,
-            tint = Color(0xFF170E29),
+            tint = Color(0xFFDDA04B),
             modifier = Modifier.size(24.dp)
         )
         
@@ -1033,13 +1033,13 @@ fun InfoItem(
             text = value,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF170E29)
+            color = Color(0xFFDDA04B)
         )
         
         Text(
             text = label,
             fontSize = 12.sp,
-            color = Color.Gray
+            color = Color(0xFFDDA04B).copy(alpha = 0.7f)
         )
     }
 }

@@ -90,6 +90,10 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     
+    // Filter states
+    var selectedFilter by remember { mutableStateOf("All") }
+    var showFilterDropdown by remember { mutableStateOf(false) }
+    
     // Load walks when screen is displayed
     LaunchedEffect(currentUser?.userId) {
         currentUser?.userId?.let { userId ->
@@ -101,6 +105,22 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
     val isLoading by walkViewModel.isLoading.collectAsState()
     val error by walkViewModel.error.collectAsState()
     val addWalkSuccess by walkViewModel.addWalkSuccess.collectAsState()
+    
+    // Filter walks based on selected filter (only by genre since Walk model doesn't have status)
+    val filteredWalks = remember(walks, selectedFilter) {
+        when (selectedFilter) {
+            "All" -> walks
+            "Adventure" -> walks.filter { it.genre.equals("adventure", ignoreCase = true) }
+            "Horror" -> walks.filter { it.genre.equals("horror", ignoreCase = true) }
+            "Mystery" -> walks.filter { it.genre.equals("mystery", ignoreCase = true) }
+            "Sci-Fi" -> walks.filter { it.genre.equals("sci-fi", ignoreCase = true) }
+            "Fantasy" -> walks.filter { it.genre.equals("fantasy", ignoreCase = true) }
+            "Romance" -> walks.filter { it.genre.equals("romance", ignoreCase = true) }
+            "Comedy" -> walks.filter { it.genre.equals("comedy", ignoreCase = true) }
+            "Drama" -> walks.filter { it.genre.equals("drama", ignoreCase = true) }
+            else -> walks
+        }
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -114,11 +134,76 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
                         color = Color(0xFFDDA04B)
                     )
                 },
+                actions = {
+                    // Filter dropdown button
+                    Box {
+                        IconButton(onClick = { showFilterDropdown = true }) {
+                            Icon(
+                                Icons.Default.FilterList,
+                                contentDescription = "Filter Walks",
+                                tint = Color(0xFFDDA04B)
+                            )
+                        }
+                        
+                        DropdownMenu(
+                            expanded = showFilterDropdown,
+                            onDismissRequest = { showFilterDropdown = false }
+                        ) {
+                            val filterOptions = listOf(
+                                "All", "Adventure", "Horror", "Mystery", "Sci-Fi", 
+                                "Fantasy", "Romance", "Comedy", "Drama"
+                            )
+                            
+                            filterOptions.forEach { filter ->
+                                DropdownMenuItem(
+                                    text = { Text(filter) },
+                                    onClick = {
+                                        selectedFilter = filter
+                                        showFilterDropdown = false
+                                    },
+                                    leadingIcon = if (selectedFilter == filter) {
+                                        { Icon(Icons.Default.Check, contentDescription = null) }
+                                    } else null
+                                )
+                            }
+                        }
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color(0xFF170E29)
                 )
             )
         },
+        floatingActionButton = {
+            Button(
+                onClick = { navController.navigate("genre_selection") },
+                modifier = Modifier
+                    .fillMaxWidth(0.6f) // Make it 60% of screen width
+                    .height(56.dp),
+                shape = RoundedCornerShape(28.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF170E29)
+                )
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = "Add Walk",
+                        tint = Color(0xFFDDA04B),
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Text(
+                        text = "Add Walk",
+                        fontSize = 18.sp,
+                        color = Color(0xFFDDA04B)
+                    )
+                }
+            }
+        },
+        floatingActionButtonPosition = FabPosition.Center,
         bottomBar = {
             NavigationBar(
                 containerColor = Color(0xFF170E29),
@@ -214,7 +299,7 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
                     .padding(16.dp)
             ) {
                 item {
-                    // Walks in Progress Section in Box
+                    // Header with current filter
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -224,12 +309,21 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
                             )
                             .padding(20.dp)
                     ) {
-                        Text(
-                            text = "Walks in Progress",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFDDA04B)
-                        )
+                        Column {
+                            Text(
+                                text = if (selectedFilter == "All") "All Walks" else selectedFilter,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFDDA04B)
+                            )
+                            if (selectedFilter != "All") {
+                                Text(
+                                    text = "Filtered by: $selectedFilter",
+                                    fontSize = 14.sp,
+                                    color = Color(0xFFDDA04B).copy(alpha = 0.7f)
+                                )
+                            }
+                        }
                     }
                     
                     Spacer(modifier = Modifier.height(16.dp))
@@ -246,7 +340,7 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
                             CircularProgressIndicator(color = Color(0xFFDDA04B))
                         }
                     }
-                } else if (walks.isEmpty()) {
+                } else if (filteredWalks.isEmpty()) {
                     item {
                         Card(
                             modifier = Modifier
@@ -262,7 +356,10 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "No walks yet. Create your first adventure!",
+                                    text = if (selectedFilter == "All") 
+                                        "No walks yet. Create your first adventure!" 
+                                    else 
+                                        "No walks found for '$selectedFilter' filter.",
                                     fontSize = 16.sp,
                                     color = Color.DarkGray,
                                     textAlign = TextAlign.Center
@@ -271,7 +368,7 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
                         }
                     }
                 } else {
-                    items(walks) { walk ->
+                    items(filteredWalks) { walk ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -338,44 +435,7 @@ fun HomeScreen(navController: NavHostController, authViewModel: AuthViewModel, w
                 }
                 
                 item {
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-                
-
-                
-                // Add Walk Button
-                item {
-                    Button(
-                        onClick = { navController.navigate("genre_selection") },
-                modifier = Modifier
-                            .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(28.dp),
-                colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF170E29)
-                )
-            ) {
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                Icons.Default.Add,
-                                contentDescription = "Add Walk",
-                                tint = Color(0xFFDDA04B),
-                                modifier = Modifier.padding(end = 8.dp)
-                            )
-                Text(
-                                text = "Add Walk",
-                    fontSize = 18.sp,
-                                color = Color(0xFFDDA04B)
-                            )
-                        }
-                    }
-                }
-                
-                item {
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(80.dp)) // Extra space for floating button
                 }
             }
         }

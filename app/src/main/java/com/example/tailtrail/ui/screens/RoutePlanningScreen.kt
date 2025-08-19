@@ -489,7 +489,7 @@ fun RoutePlanningScreen(
                                 Text(
                                     text = "No stops selected. Tap the map to add stops.",
                                     fontSize = 16.sp,
-                                    color = Color.DarkGray,
+                                    color = Color(0xFFBBBABA),
                                     textAlign = TextAlign.Center
                                 )
                             }
@@ -516,12 +516,12 @@ fun RoutePlanningScreen(
                                         text = "Stop ${stop.order}",
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.SemiBold,
-                                        color = Color(0xFF170E29)
+                                        color = Color(0xFFDDA04B)
                                     )
                                     Text(
                                         text = stopAddresses[stop.order] ?: "${stop.latitude}, ${stop.longitude}",
                                         fontSize = 14.sp,
-                                        color = Color.DarkGray
+                                        color = Color(0xFFBBBABA)
                                     )
                                 }
                                 
